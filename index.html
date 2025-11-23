@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>노블레스 데이터 현황 (드래그 편집 최종 완성본)</title>
+    <title>노블레스 데이터 현황 (드래그 편집 최종 수정)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -19,15 +19,15 @@
             padding: 0;
             display: flex;
             min-height: 100vh;
-            /* 드래그 시 텍스트 선택 방지 (테이블 내부 contenteditable 제외) */
+            /* 중요: 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
             user-select: none; 
         }
 
         .wrap {
             flex-grow: 1;
-            padding: 20px 20px 20px 180px; /* Space for left menu */
+            padding: 20px 20px 20px 180px;
             position: relative;
-            max-width: calc(100vw - 320px); /* 180px left menu + 300px settings panel + padding */
+            max-width: calc(100vw - 320px);
             overflow: auto;
         }
         
@@ -151,8 +151,8 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            table-layout: fixed; /* Ensures column resizing works consistently */
-            user-select: auto; /* 테이블 내부는 텍스트 선택 가능 */
+            table-layout: fixed;
+            user-select: auto; /* 테이블 내부는 텍스트 편집을 위해 선택 가능 */
         }
 
         .data-table td {
@@ -162,9 +162,9 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            position: relative; /* For resizers */
-            line-height: 1; /* For consistent row height application */
-            height: 15px; /* Base height for data rows */
+            position: relative;
+            line-height: 1;
+            height: 15px;
             box-sizing: border-box;
             transition: background-color 0.1s, border-color 0.1s;
         }
@@ -215,20 +215,20 @@
             position: absolute;
             border: 2px dashed #FFD700;
             background-color: rgba(255, 215, 0, 0.2);
-            pointer-events: none; /* Allows mouse events to pass through to the table */
+            pointer-events: none;
             z-index: 10;
             display: none;
         }
 
         /* Selected Cell Styling (Actual selection state) */
         .data-table td.selected {
-            border: 2px solid #ffdd66 !important; /* important to override default border */
+            border: 2px solid #ffdd66 !important;
             box-shadow: inset 0 0 0 1px #ffdd66, 0 0 5px rgba(255, 221, 102, 0.5);
             position: relative;
-            z-index: 5; /* Ensure selected border is on top */
+            z-index: 5;
         }
 
-        /* Resizer Styling (Placeholder for future feature) */
+        /* Resizer Styling (Placeholder) */
         .col-resizer { position: absolute; right: -4px; top: 0; width: 8px; height: 100%; cursor: col-resize; z-index: 20; }
         .row-resizer { position: absolute; bottom: -4px; right: 0; width: 100%; height: 8px; cursor: row-resize; z-index: 20; }
         .resizer-display { position: fixed; padding: 5px 10px; background: rgba(0, 0, 0, 0.8); color: #ffdd66; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 101; font-size: 0.8em; white-space: nowrap; }
@@ -417,7 +417,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-import { setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Global Variables and Firebase Setup ---
 const TABLE_DOC_ID = 'main_table_state';
@@ -454,7 +453,7 @@ const selectionBox = document.getElementById('selectionBox');
 let isDragging = false;
 let startCell = null;
 let endCell = null;
-let isResizing = false; // Flag for future resizing feature
+let isResizing = false;
 
 // --- 1. Firebase Authentication & Data Path Setup ---
 
@@ -484,17 +483,12 @@ const initAuthAndListeners = async () => {
             }
         }
         
+        // 인증이 완료되면 데이터 로드만 수행 (리스너는 이미 등록됨)
         if (currentUserId && !hasLoadedState) {
             isAuthReady = true;
-            // setLogLevel('Debug'); // Uncomment for Firestore debugging
-            
-            // === 핵심: 누락되었던 리스너 설정 함수들 호출 ===
-            setupTableEventListeners();
-            setupControlListeners();
-            
             loadTableState(currentUserId);
             hasLoadedState = true;
-            console.log("Auth ready, listeners setup, state loading initiated.");
+            console.log("Auth ready, state loading initiated.");
         }
     });
 };
@@ -512,7 +506,6 @@ const saveTableState = async (userId) => {
     }
 
     const cellStates = {};
-    // const colWidths = {}; // Column width saving disabled for now as resizing isn't implemented
     const rowHeights = {};
     
     // 1. Save Cell Contents and Styles
@@ -521,12 +514,11 @@ const saveTableState = async (userId) => {
         row.querySelectorAll('td').forEach((cell, cIndex) => {
             const cellId = `r${rIndex}c${cIndex}`;
             cellStates[cellId] = {
-                text: cell.innerHTML, // Use innerHTML to capture line breaks (<br>)
+                text: cell.innerHTML,
                 color: cell.style.color || '',
                 bg: cell.style.backgroundColor || '',
                 fontSize: cell.style.fontSize || '',
             };
-            // if (rIndex === 1 && cell.style.width) colWidths[`c${cIndex}`] = cell.style.width;
         });
     });
 
@@ -542,7 +534,6 @@ const saveTableState = async (userId) => {
     const tableState = {
         cells: cellStates,
         rowHeights: rowHeights,
-        // colWidths: colWidths,
         timestamp: new Date()
     };
     
@@ -563,7 +554,7 @@ const loadTableState = (userId) => {
             const data = docSnap.data();
             applyLoadedState(data);
         } else if (!initialLoadDone) {
-            saveTableState(userId); // Save initial state if none exists
+            saveTableState(userId);
         }
         initialLoadDone = true;
     }, (error) => console.error("Error listening to state changes:", error));
@@ -586,7 +577,6 @@ const applyLoadedState = (data) => {
         });
     }
 
-    // Apply row group heights
     if (data.rowHeights) {
         for (const [key, value] of Object.entries(data.rowHeights)) {
             let inputId = `${key.replace('-data', 'RowHeightInput')}`;
@@ -596,14 +586,13 @@ const applyLoadedState = (data) => {
             applyRowHeight(key, value);
         }
     }
-    // Clear selection after loading to avoid visual clutter
     clearSelection();
 };
 
 // --- 3. Cell Interaction Logic (Drag Selection) ---
 
+// 드래그 시작 로직 개선: 텍스트 편집과 드래그 선택 충돌 방지
 const handleDragStart = (e) => {
-    // Ignore clicks on resizers, settings panel, or inputs
     if (e.target.closest('.col-resizer') || e.target.closest('.row-resizer') || isResizing || e.target.closest('.setting-panel')) {
         return;
     }
@@ -611,45 +600,38 @@ const handleDragStart = (e) => {
     const cell = e.target.closest('td');
     if (!cell) return;
 
-    // If clicking inside an editable cell *without* holding Ctrl/Cmd, assume text editing intent initially.
-    // If the user starts dragging *immediately*, it will become a selection drag.
-    // If they just click, it remains a text edit cursor placement.
+    // 편집 가능한 셀 클릭 시: Ctrl/Meta 키가 없으면 일단 텍스트 편집으로 간주
     if (cell.isContentEditable && !e.ctrlKey && !e.metaKey) {
-         // Let default behavior happen (text cursor placement)
-         // But we still track startCell in case it turns into a drag movement later.
          startCell = cell;
-         // DO NOT set isDragging = true yet. Wait for movement.
+         // 마우스가 움직이면 드래그로 전환하기 위해 리스너 등록
          document.addEventListener('mousemove', handleDraggingCheck);
          document.addEventListener('mouseup', handleDragEndCleanup);
          return;
     }
 
-    // Start drag selection immediately (e.g. holding Ctrl or clicking non-editable area)
+    // Ctrl 키를 눌렀거나 편집 불가능한 영역 클릭 시 즉시 드래그 시작
     e.preventDefault();
     startDragSelection(cell, e.shiftKey);
 };
 
-// Helper to decide if a mousemove is a drag selection or text selection
+// 마우스 움직임 감지하여 드래그 시작 여부 결정
 const handleDraggingCheck = (e) => {
-    // If moved significantly, treat as drag selection start
-    isDragging = true;
+    isDragging = true; // 움직였으므로 드래그로 간주
     document.removeEventListener('mousemove', handleDraggingCheck);
     document.removeEventListener('mouseup', handleDragEndCleanup);
     
-    // Clear existing text selection to avoid visual conflict
-    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.removeAllRanges(); // 기존 텍스트 선택 해제
     
-    startDragSelection(startCell, false); // Start fresh drag
-    handleDragging(e); // Immediately process first movement
+    startDragSelection(startCell, false); // 드래그 선택 시작
+    handleDragging(e); // 첫 움직임 처리
 };
 
+// 클릭만 하고 끝났을 때 정리
 const handleDragEndCleanup = () => {
-     // Mouse up without movement - it was just a click for text editing.
      document.removeEventListener('mousemove', handleDraggingCheck);
      document.removeEventListener('mouseup', handleDragEndCleanup);
      startCell = null;
 }
-
 
 const startDragSelection = (cell, isShiftPressed) => {
     isDragging = true;
@@ -667,11 +649,8 @@ const startDragSelection = (cell, isShiftPressed) => {
     document.addEventListener('mouseup', handleDragEnd);
 }
 
-
 const handleDragging = (e) => {
     if (!isDragging) return;
-
-    // Prevent default to avoid selecting text outside table while dragging outside
     e.preventDefault(); 
 
     const cellUnderMouse = e.target.closest('td');
@@ -684,12 +663,10 @@ const handleDragging = (e) => {
 
 const handleDragEnd = () => {
     if (!isDragging) return;
-
     isDragging = false;
     startCell = null;
     endCell = null;
     selectionBox.style.display = 'none';
-
     document.removeEventListener('mousemove', handleDragging);
     document.removeEventListener('mouseup', handleDragEnd);
 };
@@ -706,10 +683,8 @@ const selectCellsInDragArea = (startCell, endCell) => {
     const getCellIndices = (cell) => {
         const row = cell.parentElement;
         const rowIndex = allRows.indexOf(row);
-        // Calculate actual cell index accounting for colspans is complex. 
-        // Using simplified index for rect-based selection visual.
-        const cellIndex = Array.from(row.children).indexOf(cell); 
-        return { rowIndex, cellIndex, cellRect: cell.getBoundingClientRect() };
+        const cellRect = cell.getBoundingClientRect();
+        return { rowIndex, cellRect };
     };
 
     const start = getCellIndices(startCell);
@@ -717,7 +692,6 @@ const selectCellsInDragArea = (startCell, endCell) => {
 
     if (start.rowIndex === -1 || end.rowIndex === -1) return;
 
-    // Calculate bounding box of the start and end cells
     const top = Math.min(start.cellRect.top, end.cellRect.top);
     const bottom = Math.max(start.cellRect.bottom, end.cellRect.bottom);
     const left = Math.min(start.cellRect.left, end.cellRect.left);
@@ -725,10 +699,8 @@ const selectCellsInDragArea = (startCell, endCell) => {
 
     clearSelection();
 
-    // Select all cells that intersect with the bounding box
     table.querySelectorAll('td').forEach(cell => {
         const cellRect = cell.getBoundingClientRect();
-        // Check intersection
         if (cellRect.top < bottom && cellRect.bottom > top &&
             cellRect.left < right && cellRect.right > left) {
             cell.classList.add('selected');
@@ -738,7 +710,6 @@ const selectCellsInDragArea = (startCell, endCell) => {
 
 const updateSelectionBoxVisual = (cell1, cell2) => {
     if (!selectionBox || !cell1 || !cell2) return;
-    const tableRect = table.getBoundingClientRect();
     const rect1 = cell1.getBoundingClientRect();
     const rect2 = cell2.getBoundingClientRect();
 
@@ -747,19 +718,31 @@ const updateSelectionBoxVisual = (cell1, cell2) => {
     const right = Math.max(rect1.right, rect2.right);
     const bottom = Math.max(rect1.bottom, rect2.bottom);
     
-    // Adjust relative to the wrap container
     const wrapRect = document.querySelector('.wrap').getBoundingClientRect();
+    const wrapEl = document.querySelector('.wrap');
 
-    selectionBox.style.left = (left - wrapRect.left + document.querySelector('.wrap').scrollLeft) + 'px';
-    selectionBox.style.top = (top - wrapRect.top + document.querySelector('.wrap').scrollTop) + 'px';
+    selectionBox.style.left = (left - wrapRect.left + wrapEl.scrollLeft) + 'px';
+    selectionBox.style.top = (top - wrapRect.top + wrapEl.scrollTop) + 'px';
     selectionBox.style.width = (right - left) + 'px';
     selectionBox.style.height = (bottom - top) + 'px';
 };
 
 
-// --- 4. Control Panel & Event Listener Implementation (Missing parts added here) ---
+// --- 4. Control Panel & Event Listeners (Executed Immediately) ---
 
-// === 핵심 추가 1: 선택된 셀에 스타일 적용 및 저장하는 함수 ===
+// [수정됨] 색상 팔레트 즉시 생성
+COLOR_PALETTE.forEach(color => {
+    const swatch = document.createElement('div');
+    swatch.className = 'color-swatch';
+    swatch.style.backgroundColor = color;
+    swatch.dataset.color = color;
+    colorPaletteContainer.appendChild(swatch);
+});
+
+// [수정됨] 테이블 드래그 이벤트 즉시 연결
+table.addEventListener('mousedown', handleDragStart);
+
+// 스타일 적용 함수
 const applyStyleToSelectedCells = (styleProp, value) => {
     const selectedCells = document.querySelectorAll('.data-table td.selected');
     
@@ -772,87 +755,66 @@ const applyStyleToSelectedCells = (styleProp, value) => {
         cell.style[styleProp] = value;
     });
 
-    // 변경 즉시 저장
     if (currentUserId && isAuthReady) {
          saveTableState(currentUserId);
     }
 };
 
-// === 핵심 추가 2: 테이블 이벤트 리스너 설정 ===
-const setupTableEventListeners = () => {
-    // mousedown 이벤트로 드래그 시작 로직 연결
-    table.addEventListener('mousedown', handleDragStart);
-};
-
-// === 핵심 추가 3: 컨트롤 패널 리스너 설정 (리팩토링 완료) ===
-const setupControlListeners = () => {
-    // 1. 색상 팔레트 생성
-    if (colorPaletteContainer.children.length === 0) {
-        COLOR_PALETTE.forEach(color => {
-            const swatch = document.createElement('div');
-            swatch.className = 'color-swatch';
-            swatch.style.backgroundColor = color;
-            swatch.dataset.color = color;
-            colorPaletteContainer.appendChild(swatch);
-        });
+// [수정됨] 컨트롤 패널 이벤트 리스너 즉시 연결
+// 1. 색상 클릭 이벤트
+colorPaletteContainer.addEventListener('click', (e) => {
+    const swatch = e.target.closest('.color-swatch');
+    if (!swatch) return;
+    const color = swatch.dataset.color;
+    const target = document.querySelector('input[name="colorTarget"]:checked').value;
+    
+    if (target === 'text') {
+        applyStyleToSelectedCells('color', color);
+    } else {
+        applyStyleToSelectedCells('backgroundColor', color);
     }
+});
 
-    // 2. 색상 클릭 이벤트
-    colorPaletteContainer.addEventListener('click', (e) => {
-        const swatch = e.target.closest('.color-swatch');
-        if (!swatch) return;
-        const color = swatch.dataset.color;
-        const target = document.querySelector('input[name="colorTarget"]:checked').value;
+// 2. 글꼴 크기 적용 이벤트
+applyFontSizeBtn.addEventListener('click', () => {
+    const size = parseInt(fontSizeInput.value, 10);
+    if (size && size >= 8 && size <= 48) {
+        applyStyleToSelectedCells('fontSize', `${size}px`);
+    } else {
+        alert("글꼴 크기는 8px ~ 48px 사이로 입력해주세요.");
+    }
+});
+
+// 3. 행 높이 적용 이벤트
+document.querySelectorAll('.height-apply-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        const target = e.currentTarget.dataset.target;
+        let inputId = `${target.replace('-data', 'RowHeightInput')}`;
+        if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+        const input = document.getElementById(inputId);
+        if (!input) return;
         
-        if (target === 'text') {
-            applyStyleToSelectedCells('color', color);
-        } else {
-            applyStyleToSelectedCells('backgroundColor', color);
+        const height = parseInt(input.value, 10);
+        if (height > 0) {
+            applyRowHeight(target, height);
+            if (currentUserId && isAuthReady) saveTableState(currentUserId);
         }
     });
+});
 
-    // 3. 글꼴 크기 적용 이벤트
-    applyFontSizeBtn.addEventListener('click', () => {
-        const size = parseInt(fontSizeInput.value, 10);
-        if (size && size >= 8 && size <= 48) {
-            applyStyleToSelectedCells('fontSize', `${size}px`);
-        } else {
-            alert("글꼴 크기는 8px ~ 48px 사이로 입력해주세요.");
-        }
+// 4. 이미지 다운로드 이벤트
+downloadButton.addEventListener('click', () => {
+    clearSelection();
+    selectionBox.style.display = 'none';
+    
+    const element = document.getElementById('capture-area');
+    html2canvas(element, { scale: 2, backgroundColor: '#1a1a1a' }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = '노블레스_데이터_현황.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
     });
-
-    // 4. 행 높이 적용 이벤트
-    document.querySelectorAll('.height-apply-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const target = e.currentTarget.dataset.target;
-            let inputId = `${target.replace('-data', 'RowHeightInput')}`;
-            if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
-            const input = document.getElementById(inputId);
-            if (!input) return;
-            
-            const height = parseInt(input.value, 10);
-            if (height > 0) {
-                applyRowHeight(target, height);
-                saveTableState(currentUserId); // 저장
-            }
-        });
-    });
-
-    // 5. 이미지 다운로드 이벤트
-    downloadButton.addEventListener('click', () => {
-        // 캡처 전 선택 영역 숨기기
-        clearSelection();
-        selectionBox.style.display = 'none';
-        
-        const element = document.getElementById('capture-area');
-        html2canvas(element, { scale: 2, backgroundColor: '#1a1a1a' }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = '노블레스_데이터_현황.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        });
-    });
-};
+});
 
 
 // Helper for applying row heights
@@ -875,11 +837,10 @@ const applyRowHeight = (targetClassPrefix, height) => {
     });
 };
 
-// 텍스트 편집 중 엔터키 입력 시 줄바꿈(<br>) 처리
+// 텍스트 편집 엔터키 처리
 table.addEventListener('keydown', (e) => {
     if (e.target.isContentEditable && e.key === 'Enter') {
         e.preventDefault();
-        // 커서 위치에 <br> 태그 삽입
         const selection = window.getSelection();
         const range = selection.getRangeAt(0);
         const br = document.createElement('br');
@@ -892,12 +853,12 @@ table.addEventListener('keydown', (e) => {
     }
 });
 
-// 편집 종료(블러) 시 자동 저장
+// 편집 종료 시 자동 저장
 table.addEventListener('blur', (e) => {
     if (e.target.isContentEditable && currentUserId && isAuthReady) {
         saveTableState(currentUserId);
     }
-}, true); // 캡처링 단계에서 이벤트를 잡아 모든 셀의 blur를 감지
+}, true);
 
 </script>
 </body>
