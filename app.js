@@ -6,13 +6,15 @@ import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/f
 
 // --- Firebase 설정 정보 (여기에 자신의 Firebase 프로젝트 설정을 붙여넣으세요) ---
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // <-- 여기에 API 키 입력
-    authDomain: "YOUR_AUTH_DOMAIN", // <-- 여기에 Auth 도메인 입력
-    projectId: "YOUR_PROJECT_ID", // <-- 여기에 프로젝트 ID 입력
-    storageBucket: "YOUR_STORAGE_BUCKET", // <-- 여기에 Storage Bucket 입력
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // <-- 여기에 Messaging Sender ID 입력
-    appId: "YOUR_APP_ID" // <-- 여기에 App ID 입력
+    apiKey: "AIzaSyBSkdUP_bU60GiLY6w9Uo7e8g_pkLllFPg",
+    authDomain: "my-nonono3.firebaseapp.com",
+    projectId: "my-nonono3",
+    storageBucket: "my-nonono3.firebasestorage.app",
+    messagingSenderId: "167865896202",
+    appId: "1:167865896202:web:2567994bd29509f9d6fef3",
+    measurementId: "G-T126HT4T7X"
 };
+
 
 // 앱 ID는 Firestore 문서 경로에 사용될 수 있습니다 (필요에 따라)
 const appId = firebaseConfig.appId;
