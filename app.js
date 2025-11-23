@@ -123,13 +123,15 @@ const loadTableState = (userId) => {
 
 // --- UI 로직: 드래그 선택 ---
 const handleDragStart = (e) => {
-    if (e.target.closest('.setting-panel')) { // 설정 패널 클릭 시 드래그 방지
+    // 설정 패널이나 입력 필드 클릭 시 드래그 방지
+    if (e.target.closest('.setting-panel') || e.target.tagName === 'INPUT') { 
         return;
     }
     
     const cell = e.target.closest('td');
     if (!cell) return;
 
+    // 편집 가능한 셀 클릭 시: Ctrl/Meta 키가 없으면 일단 텍스트 편집으로 간주
     if (cell.isContentEditable && !e.ctrlKey && !e.metaKey) {
          startCell = cell;
          document.addEventListener('mousemove', handleDraggingCheck);
@@ -137,21 +139,26 @@ const handleDragStart = (e) => {
          return;
     }
 
-    e.preventDefault();
+    e.preventDefault(); // 기본 텍스트 선택 방지
     startDragSelection(cell, e.shiftKey);
 };
 
+// 마우스 움직임 감지하여 드래그 시작 여부 결정
 const handleDraggingCheck = (e) => {
-    isDragging = true;
-    document.removeEventListener('mousemove', handleDraggingCheck);
-    document.removeEventListener('mouseup', handleDragEndCleanup);
-    
-    window.getSelection()?.removeAllRanges();
-    
-    startDragSelection(startCell, false);
-    handleDragging(e);
+    // 충분히 움직였을 때만 드래그로 간주
+    if (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2) {
+        isDragging = true; 
+        document.removeEventListener('mousemove', handleDraggingCheck);
+        document.removeEventListener('mouseup', handleDragEndCleanup);
+        
+        window.getSelection()?.removeAllRanges(); // 기존 텍스트 선택 해제
+        
+        startDragSelection(startCell, false); // 드래그 선택 시작
+        handleDragging(e); // 첫 움직임 처리
+    }
 };
 
+// 클릭만 하고 끝났을 때 정리
 const handleDragEndCleanup = () => {
      document.removeEventListener('mousemove', handleDraggingCheck);
      document.removeEventListener('mouseup', handleDragEndCleanup);
@@ -162,6 +169,20 @@ const startDragSelection = (cell, isShiftPressed) => {
     isDragging = true;
     startCell = cell;
 
-    if (!isShiftPressed) {
+    if (!isShiftPressed) { // Shift 키가 눌리지 않았다면 기존 선택 해제
         clearSelection();
     }
+    
+    startCell.classList.add('selected');
+    selectionBox.style.display = 'block';
+    updateSelectionBoxVisual(startCell, startCell);
+
+    document.addEventListener('mousemove', handleDragging);
+    document.addEventListener('mouseup', handleDragEnd);
+}
+
+const handleDragging = (e) => {
+    if (!isDragging) return;
+    e.preventDefault(); // 기본 텍스트 선택 방지
+
+    const cellUnderMouse = e
