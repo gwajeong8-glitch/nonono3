@@ -1,10 +1,13 @@
-// app.js
-// Firebase SDK import (app.js 내에서 직접 로드)
+// app.js (완성형)
+// Debug image path (from uploaded assets)
+const DEBUG_IMAGE_PATH = '/mnt/data/a1bf13fb-f4c9-4d0a-a62e-2e2b245b2584.png';
+
+// Firebase SDK import (앱에서 type="module"으로 로드해야 함)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- Firebase 설정 정보 ---
+// --- Firebase 설정 (네 설정 사용) ---
 const firebaseConfig = {
     apiKey: "AIzaSyBSkdUP_bU60GiLY6w9Uo7e8g_pkLllFPg",
     authDomain: "my-nonono3.firebaseapp.com",
@@ -33,26 +36,29 @@ const fontSizeInput = document.getElementById('fontSizeInput');
 const downloadButton = document.getElementById('downloadBtn');
 const selectionBox = document.getElementById('selectionBox');
 const settingPanel = document.getElementById('settingPanel');
-const wrap = document.querySelector('.wrap');
+const wrap = document.querySelector('.wrap') || document.body;
 
-// color target radios
+// color target radios (if not present, we still query safely)
 const colorTargetRadios = document.getElementsByName('colorTarget');
 
-// row height inputs and buttons
-const topRowHeightInput = document.getElementById('topRowHeightInput');
-const applyTopRowHeightBtn = document.getElementById('applyTopRowHeightBtn');
-const middleNoticeRowHeightInput = document.getElementById('middleNoticeRowHeightInput');
-const applyMiddleNoticeRowHeightBtn = document.getElementById('applyMiddleNoticeRowHeightBtn');
-const bottomRowHeightInput = document.getElementById('bottomRowHeightInput');
-const applyBottomRowHeightBtn = document.getElementById('applyBottomRowHeightBtn');
+// row height inputs/buttons (we will create header controls if missing)
+let topRowHeightInput = document.getElementById('topRowHeightInput');
+let applyTopRowHeightBtn = document.getElementById('applyTopRowHeightBtn');
+let middleNoticeRowHeightInput = document.getElementById('middleNoticeRowHeightInput');
+let applyMiddleNoticeRowHeightBtn = document.getElementById('applyMiddleNoticeRowHeightBtn');
+let bottomRowHeightInput = document.getElementById('bottomRowHeightInput');
+let applyBottomRowHeightBtn = document.getElementById('applyBottomRowHeightBtn');
+
+let headerRowHeightInput = document.getElementById('headerRowHeightInput');
+let applyHeaderRowHeightBtn = document.getElementById('applyHeaderRowHeightBtn');
 
 // --- constants ---
 const COLOR_PALETTE = [
-    '#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF',
-    '#FFA500', '#800080', '#008000', '#808000', '#000080', '#800000', '#C0C0C0', '#808080',
-    '#FF4500', '#ADFF2F', '#1E90FF', '#FFD700', '#20B2AA', '#E9967A', '#9400D3', '#FF69B4',
-    '#A0522D', '#D2B48C', '#87CEEB', '#F08080', '#4682B4', '#DA70D6', '#B0C4DE', '#F4A460',
-    '#5F9EA0', '#DDA0DD', '#7FFF00', '#6495ED', '#DC143C', '#FF8C00', '#9ACD32', '#40E0D0'
+    '#FFFFFF','#000000','#FF0000','#00FF00','#0000FF','#FFFF00','#00FFFF','#FF00FF',
+    '#FFA500','#800080','#008000','#808000','#000080','#800000','#C0C0C0','#808080',
+    '#FF4500','#ADFF2F','#1E90FF','#FFD700','#20B2AA','#E9967A','#9400D3','#FF69B4',
+    '#A0522D','#D2B48C','#87CEEB','#F08080','#4682B4','#DA70D6','#B0C4DE','#F4A460',
+    '#5F9EA0','#DDA0DD','#7FFF00','#6495ED','#DC143C','#FF8C00','#9ACD32','#40E0D0'
 ];
 
 // --- selection/drag variables ---
@@ -66,31 +72,30 @@ const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 
 
 const saveTableState = async () => {
     if (!currentUserId || !isAuthReady) return;
-
-    const cellStates = {};
-    const rows = table.querySelectorAll('tr');
-    rows.forEach((row, rIndex) => {
-        row.querySelectorAll('td').forEach((cell, cIndex) => {
-            const cellId = `r${rIndex}c${cIndex}`;
-            cellStates[cellId] = {
-                text: cell.innerHTML,
-                color: cell.style.color || '',
-                bg: cell.style.backgroundColor || '',
-                fontSize: cell.style.fontSize || ''
-            };
-        });
-    });
-
-    const rowHeights = {};
-    document.querySelectorAll('.height-apply-btn').forEach(button => {
-        const target = button.dataset.target;
-        let inputId = `${target.replace('-data', 'RowHeightInput')}`;
-        if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
-        const input = document.getElementById(inputId);
-        if (input) rowHeights[target] = input.value;
-    });
-
     try {
+        const cellStates = {};
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row, rIndex) => {
+            row.querySelectorAll('td').forEach((cell, cIndex) => {
+                const cellId = `r${rIndex}c${cIndex}`;
+                cellStates[cellId] = {
+                    text: cell.innerHTML,
+                    color: cell.style.color || '',
+                    bg: cell.style.backgroundColor || '',
+                    fontSize: cell.style.fontSize || ''
+                };
+            });
+        });
+
+        const rowHeights = {};
+        document.querySelectorAll('.height-apply-btn').forEach(button => {
+            const target = button.dataset.target;
+            let inputId = `${target.replace('-data', 'RowHeightInput')}`;
+            if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+            const input = document.getElementById(inputId);
+            if (input) rowHeights[target] = input.value;
+        });
+
         await setDoc(getTableDocRef(currentUserId), { cells: cellStates, rowHeights, timestamp: new Date() }, { merge: true });
     } catch (err) {
         console.error('saveTableState error', err);
@@ -114,6 +119,7 @@ const applyLoadedState = (data) => {
             });
         });
     }
+
     if (data.rowHeights) {
         for (const [k, v] of Object.entries(data.rowHeights)) {
             let inputId = `${k.replace('-data', 'RowHeightInput')}`;
@@ -129,11 +135,8 @@ const applyLoadedState = (data) => {
 const loadTableState = (userId) => {
     const docRef = getTableDocRef(userId);
     onSnapshot(docRef, (snap) => {
-        if (snap.exists()) {
-            applyLoadedState(snap.data());
-        } else if (!initialLoadDone) {
-            saveTableState();
-        }
+        if (snap.exists()) applyLoadedState(snap.data());
+        else if (!initialLoadDone) saveTableState();
         initialLoadDone = true;
     }, (err) => console.error('onSnapshot error', err));
 };
@@ -222,7 +225,6 @@ const handleDragStart = (e) => {
 
     // Allow click->edit if contenteditable and no modifiers
     if (cell.isContentEditable && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-        // don't prevent editing; let click go through but attach a small move check to detect drag
         startCell = cell;
         document.addEventListener('mousemove', handleDraggingCheck);
         document.addEventListener('mouseup', handleDragEndCleanup);
@@ -251,7 +253,6 @@ const handleDraggingCheck = (e) => {
         document.removeEventListener('mousemove', handleDraggingCheck);
         document.removeEventListener('mouseup', handleDragEndCleanup);
         window.getSelection()?.removeAllRanges();
-        // treat as drag start (no shift)
         clearSelection();
         endCell = startCell;
         updateSelectionBoxVisual(startCell, startCell);
@@ -309,7 +310,6 @@ table.addEventListener('click', (e) => {
     if (!cell) return;
     if (isDragging) return;
     if (cell.isContentEditable && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-        // allow edit: place caret
         const range = document.createRange();
         const sel = window.getSelection();
         range.selectNodeContents(cell);
@@ -337,8 +337,30 @@ table.addEventListener('mousedown', handleDragStart);
 
 // --- UI actions: color palette, apply color, font size, row heights, download ---
 
+// If header controls are missing in HTML, create them dynamically inside settingPanel
+const ensureHeaderControls = () => {
+    if (!settingPanel) return;
+    if (!headerRowHeightInput || !applyHeaderRowHeightBtn) {
+        const container = document.createElement('div');
+        container.style.marginTop = '12px';
+        container.innerHTML = `
+            <label style="display:block; color:#ffdd66; margin-bottom:6px;">🔺 표 최상단 헤더 행 높이 (px)</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input id="headerRowHeightInput" type="number" value="40" min="8" style="width:70px; padding:6px; color:black; border-radius:3px; border:none;">
+                <button id="applyHeaderRowHeightBtn" class="height-apply-btn" data-target="table-header" style="padding:6px 10px; background:#555; color:white; border-radius:3px; border:none; cursor:pointer;">적용</button>
+            </div>
+        `;
+        settingPanel.appendChild(container);
+        headerRowHeightInput = document.getElementById('headerRowHeightInput');
+        applyHeaderRowHeightBtn = document.getElementById('applyHeaderRowHeightBtn');
+
+        applyHeaderRowHeightBtn.addEventListener('click', () => applyRowHeight('table-header', headerRowHeightInput.value));
+    }
+};
+
 // build palette UI
 const buildPalette = () => {
+    if (!colorPaletteContainer) return;
     colorPaletteContainer.innerHTML = '';
     COLOR_PALETTE.forEach(hex => {
         const sw = document.createElement('div');
@@ -368,80 +390,101 @@ const applyColorToSelection = (hex) => {
 };
 
 // font size apply
-applyFontSizeBtn.addEventListener('click', () => {
-    const v = fontSizeInput.value;
-    if (!v) return;
-    const sels = document.querySelectorAll('.data-table td.selected');
-    if (!sels.length) return;
-    sels.forEach(c => c.style.fontSize = `${v}px`);
-    saveTableState();
-});
+if (applyFontSizeBtn) {
+    applyFontSizeBtn.addEventListener('click', () => {
+        const v = fontSizeInput.value;
+        if (!v) return;
+        const sels = document.querySelectorAll('.data-table td.selected');
+        if (!sels.length) return;
+        sels.forEach(c => c.style.fontSize = `${v}px`);
+        saveTableState();
+    });
+}
 
-// apply row height function
+// apply row height function (includes table-header, top-data, middle-notice, bottom-data)
 const applyRowHeight = (target, value) => {
     const v = Number(value);
     if (isNaN(v)) return;
-    if (target === 'top-data') {
+
+    if (target === 'table-header') {
+        // prefer explicit header class; fallback to first row of table
+        const headerRows = document.querySelectorAll('.main-header-row, .table-title-row, .title-header-row');
+        if (headerRows && headerRows.length) {
+            headerRows.forEach(r => r.querySelectorAll('td,th').forEach(cell => cell.style.height = `${v}px`));
+        } else {
+            const firstRow = table.querySelector('tr');
+            if (firstRow) firstRow.querySelectorAll('td,th').forEach(cell => cell.style.height = `${v}px`);
+        }
+    } else if (target === 'top-data') {
         document.querySelectorAll('.top-data-row, .top-data-header').forEach(r => {
             r.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
         });
+        // top notice a bit taller
         document.querySelectorAll('.top-notice-row td').forEach(td => td.style.height = `${v + 10}px`);
     } else if (target === 'middle-notice') {
-        document.querySelectorAll('.middle-notice-row td').forEach(td => td.style.height = `${v}px`);
+        // reliably target middle-notice rows
+        document.querySelectorAll('.middle-notice-row, .middle-notice-row td').forEach(el => {
+            // if it's a <tr> set its cells, if td set itself
+            if (el.tagName === 'TR') {
+                el.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
+            } else {
+                el.style.height = `${v}px`;
+            }
+        });
     } else if (target === 'bottom-data') {
         document.querySelectorAll('.bottom-data-row, .bottom-data-header').forEach(r => {
             r.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
         });
     }
+
     saveTableState();
 };
 
-// hook buttons
-applyTopRowHeightBtn.addEventListener('click', () => applyRowHeight('top-data', topRowHeightInput.value));
-applyMiddleNoticeRowHeightBtn.addEventListener('click', () => applyRowHeight('middle-notice', middleNoticeRowHeightInput.value));
-applyBottomRowHeightBtn.addEventListener('click', () => applyRowHeight('bottom-data', bottomRowHeightInput.value));
+// hook buttons (guard for missing elements)
+if (applyTopRowHeightBtn) applyTopRowHeightBtn.addEventListener('click', () => applyRowHeight('top-data', topRowHeightInput.value));
+if (applyMiddleNoticeRowHeightBtn) applyMiddleNoticeRowHeightBtn.addEventListener('click', () => applyRowHeight('middle-notice', middleNoticeRowHeightInput.value));
+if (applyBottomRowHeightBtn) applyBottomRowHeightBtn.addEventListener('click', () => applyRowHeight('bottom-data', bottomRowHeightInput.value));
 
 // download using html2canvas
-downloadButton.addEventListener('click', async () => {
-    // we expect html2canvas to be loaded in the page
-    if (typeof html2canvas === 'undefined') {
-        alert('html2canvas가 로드되지 않았습니다.');
-        return;
-    }
-    const captureArea = document.getElementById('capture-area');
-    if (!captureArea) return;
-    // temporarily remove selection outlines for clean image
-    const selectedCells = document.querySelectorAll('.data-table td.selected');
-    selectedCells.forEach(c => c.classList.add('temp-remove-outline'));
-    // create canvas
-    try {
-        const canvas = await html2canvas(captureArea, {
-            backgroundColor: null,
-            scale: 2,
-            useCORS: true,
-            scrollY: -window.scrollY
-        });
-        const url = canvas.toDataURL('image/png');
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `table_capture_${Date.now()}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    } catch (err) {
-        console.error('html2canvas error', err);
-        alert('이미지 생성에 실패했습니다.');
-    } finally {
-        // restore
-        selectedCells.forEach(c => c.classList.remove('temp-remove-outline'));
-    }
-});
+if (downloadButton) {
+    downloadButton.addEventListener('click', async () => {
+        if (typeof html2canvas === 'undefined') {
+            alert('html2canvas가 로드되지 않았습니다.');
+            return;
+        }
+        const captureArea = document.getElementById('capture-area');
+        if (!captureArea) return;
+        const selectedCells = document.querySelectorAll('.data-table td.selected');
+        selectedCells.forEach(c => c.classList.add('temp-remove-outline'));
+        try {
+            const canvas = await html2canvas(captureArea, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                scrollY: -window.scrollY
+            });
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `table_capture_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (err) {
+            console.error('html2canvas error', err);
+            alert('이미지 생성에 실패했습니다.');
+        } finally {
+            selectedCells.forEach(c => c.classList.remove('temp-remove-outline'));
+        }
+    });
+}
 
-// build palette on load
+// build palette and ensure header controls on load
 buildPalette();
+ensureHeaderControls();
 
 // init firebase auth
 initAuth();
 
-// expose save for debugging
+// Expose save for debugging
 window.saveTableState = saveTableState;
