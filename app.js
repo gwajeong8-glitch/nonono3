@@ -38,6 +38,7 @@ const fontSizeInput = document.getElementById('fontSizeInput');
 const downloadButton = document.getElementById('downloadBtn');
 const selectionBox = document.getElementById('selectionBox');
 const settingPanel = document.getElementById('settingPanel');
+const wrap = document.querySelector('.wrap'); // selectionBox는 wrap 내부에 위치하므로 기준으로 사용
 
 // --- 상수 ---
 const COLOR_PALETTE = [
@@ -52,6 +53,7 @@ const COLOR_PALETTE = [
 let isDragging = false;
 let startCell = null;
 let endCell = null;
+let dragStartClient = { x: 0, y: 0 }; // client coordinates at drag start
 
 // --- Firebase 인증 및 데이터 로드/저장 ---
 
@@ -193,42 +195,140 @@ const clearSelection = () => {
         cell.classList.remove('selected');
     });
     selectionBox.style.display = 'none';
+    // reset selectionBox sizing
+    selectionBox.style.width = '0px';
+    selectionBox.style.height = '0px';
+};
+
+// --- helper: wrap-relative coordinates for selectionBox (accounts for scroll) ---
+const getWrapRect = () => wrap.getBoundingClientRect();
+
+const clientToWrapCoords = (clientX, clientY) => {
+    const wrapRect = getWrapRect();
+    // include wrap's scroll offsets to handle inner scroll
+    const x = clientX - wrapRect.left + wrap.scrollLeft;
+    const y = clientY - wrapRect.top + wrap.scrollTop;
+    return { x, y };
+};
+
+// update visual selection box (given two cells or given client points)
+const updateSelectionBoxVisual = (cellA, cellB) => {
+    // If both are cells, compute bounding rect from their DOM rects
+    const wrapRect = getWrapRect();
+    const rectA = cellA.getBoundingClientRect();
+    const rectB = cellB.getBoundingClientRect();
+
+    const leftClient = Math.min(rectA.left, rectB.left);
+    const topClient = Math.min(rectA.top, rectB.top);
+    const rightClient = Math.max(rectA.right, rectB.right);
+    const bottomClient = Math.max(rectA.bottom, rectB.bottom);
+
+    const start = clientToWrapCoords(leftClient, topClient);
+    const end = clientToWrapCoords(rightClient, bottomClient);
+
+    const x1 = start.x;
+    const y1 = start.y;
+    const x2 = end.x;
+    const y2 = end.y;
+
+    selectionBox.style.display = 'block';
+    selectionBox.style.left = `${x1}px`;
+    selectionBox.style.top = `${y1}px`;
+    selectionBox.style.width = `${Math.max(1, x2 - x1)}px`;
+    selectionBox.style.height = `${Math.max(1, y2 - y1)}px`;
+};
+
+// select cells by startCell and endCell indices; if preserveExisting true, keep previously selected
+const selectCellsInDragArea = (cellA, cellB, preserveExisting = false) => {
+    if (!preserveExisting) {
+        // unselect only table cells (not all other UI)
+        document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
+    }
+
+    const a = getCellCoordinates(cellA);
+    const b = getCellCoordinates(cellB);
+
+    const r1 = Math.min(a.rowIndex, b.rowIndex);
+    const r2 = Math.max(a.rowIndex, b.rowIndex);
+    const c1 = Math.min(a.cellIndex, b.cellIndex);
+    const c2 = Math.max(a.cellIndex, b.cellIndex);
+
+    const rows = table.querySelectorAll('tr');
+    for (let ri = r1; ri <= r2; ri++) {
+        const cols = rows[ri].querySelectorAll('td');
+        for (let ci = c1; ci <= c2; ci++) {
+            const cell = cols[ci];
+            if (cell) {
+                cell.classList.add('selected');
+            }
+        }
+    }
 };
 
 // 드래그 시작
 const handleDragStart = (e) => {
+    // 왼쪽 클릭만 처리
+    if (e.button !== 0) return;
+
     // 설정 패널이나 입력 필드 클릭 시 드래그 방지
-    if (e.target.closest('.setting-panel') || e.target.tagName === 'INPUT') { 
+    if (e.target.closest('.setting-panel') || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
         return;
     }
-    
+
     const cell = e.target.closest('td');
     if (!cell) return;
 
-    // 편집 가능한 셀 클릭 시: Ctrl/Meta 키가 없으면 일단 텍스트 편집으로 간주
+    // 편집 가능한 셀 클릭 시: Ctrl/Meta 키가 없으면 텍스트 편집으로 간주 (따로 처리)
     if (cell.isContentEditable && !e.ctrlKey && !e.metaKey) {
          startCell = cell;
-         document.addEventListener('mousemove', handleDraggingCheck); // 드래그 시작 감지
-         document.addEventListener('mouseup', handleDragEndCleanup); // 단순 클릭 종료 감지
+         // listen for small movement to determine drag vs click-edit
+         document.addEventListener('mousemove', handleDraggingCheck);
+         document.addEventListener('mouseup', handleDragEndCleanup);
          return;
     }
 
     e.preventDefault(); // 기본 텍스트 선택 방지
-    startDragSelection(cell, e.shiftKey);
+
+    // record client start for potential raw coord updates
+    dragStartClient = { x: e.clientX, y: e.clientY };
+
+    // If shift is pressed, preserve existing selections; otherwise clear
+    const preserve = !!e.shiftKey;
+    if (!preserve) {
+        clearSelection();
+    }
+
+    startCell = cell;
+    endCell = cell;
+    isDragging = true;
+
+    // show selection box around the single start cell initially
+    updateSelectionBoxVisual(startCell, startCell);
+
+    // attach dragging/up listeners
+    document.addEventListener('mousemove', handleDragging);
+    document.addEventListener('mouseup', handleDragEnd);
 };
 
-// 마우스 움직임 감지하여 드래그 시작 여부 결정
+// 마우스 움직임 감지하여 드래그 시작 여부 결정 (for contenteditable click -> potential drag)
 const handleDraggingCheck = (e) => {
-    // 충분히 움직였을 때만 드래그로 간주 (마우스 약간만 움직여도 드래그되는 것 방지)
-    if (startCell && (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2)) {
-        isDragging = true; 
+    if (!startCell) return;
+    if (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2) {
+        // user moved enough -> treat as drag
+        isDragging = true;
         document.removeEventListener('mousemove', handleDraggingCheck);
         document.removeEventListener('mouseup', handleDragEndCleanup);
-        
+
         window.getSelection()?.removeAllRanges(); // 기존 텍스트 선택 해제
-        
-        startDragSelection(startCell, false); // 드래그 선택 시작 (shift키 없음)
-        handleDragging(e); // 첫 움직임 처리
+
+        // start drag selection preserving previous selection? treat as no-shift here
+        const preserve = false;
+        if (!preserve) clearSelection();
+
+        endCell = startCell;
+        updateSelectionBoxVisual(startCell, startCell);
+        document.addEventListener('mousemove', handleDragging);
+        document.addEventListener('mouseup', handleDragEnd);
     }
 };
 
@@ -239,22 +339,7 @@ const handleDragEndCleanup = () => {
      startCell = null;
 }
 
-const startDragSelection = (cell, isShiftPressed) => {
-    isDragging = true;
-    startCell = cell;
-
-    if (!isShiftPressed) { // Shift 키가 눌리지 않았다면 기존 선택 해제
-        clearSelection();
-    }
-    
-    startCell.classList.add('selected');
-    selectionBox.style.display = 'block';
-    updateSelectionBoxVisual(startCell, startCell);
-
-    document.addEventListener('mousemove', handleDragging);
-    document.addEventListener('mouseup', handleDragEnd);
-}
-
+// 드래그 중
 const handleDragging = (e) => {
     if (!isDragging) return;
     e.preventDefault(); // 기본 텍스트 선택 방지
@@ -262,7 +347,104 @@ const handleDragging = (e) => {
     const cellUnderMouse = e.target.closest('td');
     if (cellUnderMouse && cellUnderMouse !== endCell) {
         endCell = cellUnderMouse;
-        selectCellsInDragArea(startCell, endCell);
+        // preserveExisting true only if user held Shift at the start of drag
+        // We'll infer preservation by checking if any selected cells existed before drag start.
+        // A more explicit approach would store a flag at handleDragStart time.
+        const preserve = !!(e.shiftKey || document.querySelectorAll('.data-table td.selected').length > 0);
+        selectCellsInDragArea(startCell, endCell, preserve);
         updateSelectionBoxVisual(startCell, endCell);
+    } else {
+        // If pointer moved fast but not over a td (e.g. between cells), compute bounding box from client positions
+        // and visually update selection box without changing selection until pointer is over a cell.
+        const wrapRect = getWrapRect();
+        const startWrap = clientToWrapCoords(dragStartClient.x, dragStartClient.y);
+        const currentWrap = clientToWrapCoords(e.clientX, e.clientY);
+
+        const x1 = Math.min(startWrap.x, currentWrap.x);
+        const y1 = Math.min(startWrap.y, currentWrap.y);
+        const x2 = Math.max(startWrap.x, currentWrap.x);
+        const y2 = Math.max(startWrap.y, currentWrap.y);
+
+        selectionBox.style.display = 'block';
+        selectionBox.style.left = `${x1}px`;
+        selectionBox.style.top = `${y1}px`;
+        selectionBox.style.width = `${Math.max(1, x2 - x1)}px`;
+        selectionBox.style.height = `${Math.max(1, y2 - y1)}px`;
     }
 };
+
+// 드래그 종료
+const handleDragEnd = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+
+    // if endCell exists, finalize selection (ensure selection covers area)
+    if (startCell && endCell) {
+        const preserve = !!(e.shiftKey || document.querySelectorAll('.data-table td.selected').length > 0);
+        selectCellsInDragArea(startCell, endCell, preserve);
+    }
+
+    // hide selectionBox (keep selected classes on cells)
+    selectionBox.style.display = 'none';
+    selectionBox.style.width = '0px';
+    selectionBox.style.height = '0px';
+
+    // cleanup
+    startCell = null;
+    endCell = null;
+    document.removeEventListener('mousemove', handleDragging);
+    document.removeEventListener('mouseup', handleDragEnd);
+};
+
+// --- 기타: 단일 클릭으로 선택/편집 동작 처리 (원하면 수정 가능) ---
+// 단일 클릭 시 선택 토글: Ctrl/Meta 클릭하면 토글, 아니면 단일 선택
+table.addEventListener('click', (e) => {
+    const cell = e.target.closest('td');
+    if (!cell) return;
+
+    // 클릭이 드래그 도중이거나 드래그 직후였으면 무시
+    if (isDragging) return;
+
+    // If user clicked into an editable cell and didn't hold ctrl/meta, allow editing (do not toggle)
+    if (cell.isContentEditable && !e.ctrlKey && !e.metaKey) {
+        // focus caret into the cell for immediate editing
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(cell);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        cell.focus();
+        return;
+    }
+
+    if (e.ctrlKey || e.metaKey) {
+        // toggle selection
+        cell.classList.toggle('selected');
+    } else if (e.shiftKey) {
+        // Shift click: extend from last selected cell if exists, otherwise behave like normal click
+        const lastSelected = document.querySelector('.data-table td.selected');
+        if (lastSelected) {
+            selectCellsInDragArea(lastSelected, cell, true);
+        } else {
+            clearSelection();
+            cell.classList.add('selected');
+        }
+    } else {
+        // single click without modifiers: clear and select this cell
+        clearSelection();
+        cell.classList.add('selected');
+    }
+});
+
+// Prevent native drag of content to keep behavior consistent
+document.addEventListener('dragstart', (e) => e.preventDefault());
+
+// Attach mousedown to table to start our selection flow
+table.addEventListener('mousedown', handleDragStart);
+
+// initialize Firebase auth
+initAuth();
+
+// Expose save function to window for debugging if needed
+window.saveTableState = saveTableState;
