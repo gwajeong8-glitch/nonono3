@@ -36,26 +36,36 @@
     </div>
     
     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
-        <h3>📐 그룹별 행 높이 (px)</h3>
-        
-        <div style="margin-bottom: 10px;">
-            <label for="topRowHeightInput" style="display: block; margin-bottom: 5px;">상단 데이터 행 높이:</label>
-            <input type="number" id="topRowHeightInput" min="10" max="100" value="15" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
-            <button id="applyTopRowHeightBtn" class="height-apply-btn" data-target="top-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
-        </div>
+       <h3>📐 그룹별 행 높이 (px)</h3>
 
-        <div style="margin-bottom: 10px;">
-            <label for="middleNoticeRowHeightInput" style="display: block; margin-bottom: 5px;">중단 공지/제목 행 높이:</label>
-            <input type="number" id="middleNoticeRowHeightInput" min="20" max="200" value="30" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
-            <button id="applyMiddleNoticeRowHeightBtn" class="height-apply-btn" data-target="middle-notice" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
-        </div>
+<!-- 상단 데이터 -->
+<div style="margin-bottom: 10px;">
+    <label for="topRowHeightInput" style="display: block; margin-bottom: 5px;">상단 데이터 행 높이:</label>
+    <input type="number" id="topRowHeightInput" min="10" max="100" value="15" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyTopRowHeightBtn" class="height-apply-btn" data-target="top-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
 
-        <div>
-            <label for="bottomRowHeightInput" style="display: block; margin-bottom: 5px;">하단 데이터 행 높이:</label>
-            <input type="number" id="bottomRowHeightInput" min="10" max="100" value="15" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
-            <button id="applyBottomRowHeightBtn" class="height-apply-btn" data-target="bottom-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
-        </div>
-    </div>
+<!-- 중단 공지/제목 -->
+<div style="margin-bottom: 10px;">
+    <label for="middleNoticeRowHeightInput" style="display: block; margin-bottom: 5px;">중단 공지/제목 행 높이:</label>
+    <input type="number" id="middleNoticeRowHeightInput" min="20" max="200" value="30" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyMiddleNoticeRowHeightBtn" class="height-apply-btn" data-target="middle-notice" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
+
+<!-- 하단 데이터 -->
+<div style="margin-bottom: 10px;">
+    <label for="bottomRowHeightInput" style="display: block; margin-bottom: 5px;">하단 데이터 행 높이:</label>
+    <input type="number" id="bottomRowHeightInput" min="10" max="100" value="15" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyBottomRowHeightBtn" class="height-apply-btn" data-target="bottom-data" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
+
+<!-- 🔥 최상단 헤더 -->
+<div style="margin-bottom: 10px; margin-top: 10px;">
+    <label for="headerRowHeightInput" style="display: block; margin-bottom: 5px;">최상단 헤더 행 높이:</label>
+    <input type="number" id="headerRowHeightInput" min="10" max="200" value="40" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
+    <button id="applyHeaderRowHeightBtn" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
+</div>
+
     <button class="download-button" id="downloadBtn">
         🖼️ 테이블 영역 이미지 다운로드 (PNG)
     </button>
