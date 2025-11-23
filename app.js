@@ -9,13 +9,13 @@ import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/f
 
 // --- Firebase 설정 (네 설정 사용) ---
 const firebaseConfig = {
-  apiKey: "AIzaSyBSkdUP_bU60GiLY6w9Uo7e8g_pkLllFPg",
-  authDomain: "my-nonono3.firebaseapp.com",
-  projectId: "my-nonono3",
-  storageBucket: "my-nonono3.firebasestorage.app",
-  messagingSenderId: "167865896202",
-  appId: "1:167865896202:web:2567994bd29509f9d6fef3",
-  measurementId: "G-T126HT4T7X"
+    apiKey: "AIzaSyBSkdUP_bU60GiLY6w9Uo7e8g_pkLllFPg",
+    authDomain: "my-nonono3.firebaseapp.com",
+    projectId: "my-nonono3",
+    storageBucket: "my-nonono3.firebasestorage.app",
+    messagingSenderId: "167865896202",
+    appId: "1:167865896202:web:2567994bd29509f9d6fef3",
+    measurementId: "G-T126HT4T7X"
 };
 
 const appId = firebaseConfig.appId;
@@ -48,16 +48,17 @@ let middleNoticeRowHeightInput = document.getElementById('middleNoticeRowHeightI
 let applyMiddleNoticeRowHeightBtn = document.getElementById('applyMiddleNoticeRowHeightBtn');
 let bottomRowHeightInput = document.getElementById('bottomRowHeightInput');
 let applyBottomRowHeightBtn = document.getElementById('applyBottomRowHeightBtn');
+
 let headerRowHeightInput = document.getElementById('headerRowHeightInput');
 let applyHeaderRowHeightBtn = document.getElementById('applyHeaderRowHeightBtn');
 
 // --- constants ---
 const COLOR_PALETTE = [
-  '#FFFFFF','#000000','#FF0000','#00FF00','#0000FF','#FFFF00','#00FFFF','#FF00FF',
-  '#FFA500','#800080','#008000','#808000','#000080','#800000','#C0C0C0','#808080',
-  '#FF4500','#ADFF2F','#1E90FF','#FFD700','#20B2AA','#E9967A','#9400D3','#FF69B4',
-  '#A0522D','#D2B48C','#87CEEB','#F08080','#4682B4','#DA70D6','#B0C4DE','#F4A460',
-  '#5F9EA0','#DDA0DD','#7FFF00','#6495ED','#DC143C','#FF8C00','#9ACD32','#40E0D0'
+    '#FFFFFF','#000000','#FF0000','#00FF00','#0000FF','#FFFF00','#00FFFF','#FF00FF',
+    '#FFA500','#800080','#008000','#808000','#000080','#800000','#C0C0C0','#808080',
+    '#FF4500','#ADFF2F','#1E90FF','#FFD700','#20B2AA','#E9967A','#9400D3','#FF69B4',
+    '#A0522D','#D2B48C','#87CEEB','#F08080','#4682B4','#DA70D6','#B0C4DE','#F4A460',
+    '#5F9EA0','#DDA0DD','#7FFF00','#6495ED','#DC143C','#FF8C00','#9ACD32','#40E0D0'
 ];
 
 // --- selection/drag variables ---
@@ -70,438 +71,412 @@ let dragStartClient = { x: 0, y: 0 };
 const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
 
 const saveTableState = async () => {
-  if (!currentUserId || !isAuthReady) return;
-  if (!table) return;
-  try {
-    const cellStates = {};
-    const rows = table.querySelectorAll('tr');
-    rows.forEach((row, rIndex) => {
-      row.querySelectorAll('td,th').forEach((cell, cIndex) => {
-        const cellId = `r${rIndex}c${cIndex}`;
-        cellStates[cellId] = {
-          text: cell.innerHTML,
-          color: cell.style.color || '',
-          bg: cell.style.backgroundColor || '',
-          fontSize: cell.style.fontSize || ''
-        };
-      });
-    });
+    if (!currentUserId || !isAuthReady) return;
+    try {
+        const cellStates = {};
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row, rIndex) => {
+            row.querySelectorAll('td').forEach((cell, cIndex) => {
+                const cellId = `r${rIndex}c${cIndex}`;
+                cellStates[cellId] = {
+                    text: cell.innerHTML,
+                    color: cell.style.color || '',
+                    bg: cell.style.backgroundColor || '',
+                    fontSize: cell.style.fontSize || ''
+                };
+            });
+        });
 
-    const rowHeights = {};
-    document.querySelectorAll('.height-apply-btn').forEach(button => {
-      const target = button.dataset.target;
-      // map target name to input id
-      let inputId = target.replace('-data', 'RowHeightInput');
-      if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
-      if (target === 'table-header') inputId = 'headerRowHeightInput';
-      const input = document.getElementById(inputId);
-      if (input) rowHeights[target] = input.value;
-    });
+        const rowHeights = {};
+        document.querySelectorAll('.height-apply-btn').forEach(button => {
+            const target = button.dataset.target;
+            let inputId = `${target.replace('-data', 'RowHeightInput')}`;
+            if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+            const input = document.getElementById(inputId);
+            if (input) rowHeights[target] = input.value;
+        });
 
-    await setDoc(getTableDocRef(currentUserId), { cells: cellStates, rowHeights, timestamp: new Date() }, { merge: true });
-  } catch (err) {
-    console.error('saveTableState error', err);
-  }
+        await setDoc(getTableDocRef(currentUserId), { cells: cellStates, rowHeights, timestamp: new Date() }, { merge: true });
+    } catch (err) {
+        console.error('saveTableState error', err);
+    }
 };
 
 const applyLoadedState = (data) => {
-  if (!data || !table) return;
-  if (data.cells) {
-    const rows = table.querySelectorAll('tr');
-    rows.forEach((row, rIndex) => {
-      row.querySelectorAll('td,th').forEach((cell, cIndex) => {
-        const cellId = `r${rIndex}c${cIndex}`;
-        const st = data.cells[cellId];
-        if (st) {
-          if (cell.innerHTML !== st.text) cell.innerHTML = st.text;
-          cell.style.color = st.color || '';
-          cell.style.backgroundColor = st.bg || '';
-          cell.style.fontSize = st.fontSize || '';
-        }
-      });
-    });
-  }
-
-  if (data.rowHeights) {
-    for (const [k, v] of Object.entries(data.rowHeights)) {
-      let inputId = k.replace('-data', 'RowHeightInput');
-      if (k === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
-      if (k === 'table-header') inputId = 'headerRowHeightInput';
-      const input = document.getElementById(inputId);
-      if (input) {
-        input.value = v;
-        applyRowHeight(k, v);
-      } else {
-        // still try to apply directly if possible
-        applyRowHeight(k, v);
-      }
+    if (!data) return;
+    if (data.cells) {
+        const rows = table.querySelectorAll('tr');
+        rows.forEach((row, rIndex) => {
+            row.querySelectorAll('td').forEach((cell, cIndex) => {
+                const cellId = `r${rIndex}c${cIndex}`;
+                const st = data.cells[cellId];
+                if (st) {
+                    if (cell.innerHTML !== st.text) cell.innerHTML = st.text;
+                    cell.style.color = st.color || '';
+                    cell.style.backgroundColor = st.bg || '';
+                    cell.style.fontSize = st.fontSize || '';
+                }
+            });
+        });
     }
-  }
 
-  clearSelection();
+    if (data.rowHeights) {
+        for (const [k, v] of Object.entries(data.rowHeights)) {
+            let inputId = `${k.replace('-data', 'RowHeightInput')}`;
+            if (k === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
+            const input = document.getElementById(inputId);
+            if (input) input.value = v;
+            applyRowHeight(k, v);
+        }
+    }
+    clearSelection();
 };
 
 const loadTableState = (userId) => {
-  const docRef = getTableDocRef(userId);
-  onSnapshot(docRef, (snap) => {
-    if (snap.exists()) applyLoadedState(snap.data());
-    else if (!initialLoadDone) saveTableState();
-    initialLoadDone = true;
-  }, (err) => console.error('onSnapshot error', err));
+    const docRef = getTableDocRef(userId);
+    onSnapshot(docRef, (snap) => {
+        if (snap.exists()) applyLoadedState(snap.data());
+        else if (!initialLoadDone) saveTableState();
+        initialLoadDone = true;
+    }, (err) => console.error('onSnapshot error', err));
 };
 
 const initAuth = async () => {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      currentUserId = user.uid;
-    } else {
-      try {
-        const res = await signInAnonymously(auth);
-        currentUserId = res.user.uid;
-      } catch (e) {
-        console.error('anon signin failed', e);
-        return;
-      }
-    }
-    if (currentUserId && !isAuthReady) {
-      isAuthReady = true;
-      loadTableState(currentUserId);
-    }
-  });
+    onAuthStateChanged(auth, async (user) => {
+        if (user) currentUserId = user.uid;
+        else {
+            try {
+                await signInAnonymously(auth);
+                currentUserId = auth.currentUser.uid;
+            } catch (e) {
+                console.error('anon signin failed', e);
+                return;
+            }
+        }
+        if (currentUserId && !isAuthReady) {
+            isAuthReady = true;
+            loadTableState(currentUserId);
+        }
+    });
 };
 
 // --- Selection utilities ---
 const getCellCoordinates = (cell) => {
-  const rowIndex = cell.closest('tr').rowIndex;
-  const cellIndex = cell.cellIndex;
-  return { rowIndex, cellIndex };
+    const rowIndex = cell.closest('tr').rowIndex;
+    const cellIndex = cell.cellIndex;
+    return { rowIndex, cellIndex };
 };
 
 const clearSelection = () => {
-  document.querySelectorAll('.data-table td.selected, .data-table th.selected').forEach(c => c.classList.remove('selected'));
-  if (selectionBox) {
+    document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
     selectionBox.style.display = 'none';
     selectionBox.style.width = '0px';
     selectionBox.style.height = '0px';
-  }
 };
 
 const getWrapRect = () => wrap.getBoundingClientRect();
-
 const clientToWrapCoords = (clientX, clientY) => {
-  const wr = getWrapRect();
-  return { x: clientX - wr.left + wrap.scrollLeft, y: clientY - wr.top + wrap.scrollTop };
+    const wr = getWrapRect();
+    return { x: clientX - wr.left + wrap.scrollLeft, y: clientY - wr.top + wrap.scrollTop };
 };
 
 const updateSelectionBoxVisual = (cellA, cellB) => {
-  if (!selectionBox) return;
-  const rectA = cellA.getBoundingClientRect();
-  const rectB = cellB.getBoundingClientRect();
-  const leftClient = Math.min(rectA.left, rectB.left);
-  const topClient = Math.min(rectA.top, rectB.top);
-  const rightClient = Math.max(rectA.right, rectB.right);
-  const bottomClient = Math.max(rectA.bottom, rectB.bottom);
-  const start = clientToWrapCoords(leftClient, topClient);
-  const end = clientToWrapCoords(rightClient, bottomClient);
-  selectionBox.style.display = 'block';
-  selectionBox.style.left = `${start.x}px`;
-  selectionBox.style.top = `${start.y}px`;
-  selectionBox.style.width = `${Math.max(1, end.x - start.x)}px`;
-  selectionBox.style.height = `${Math.max(1, end.y - start.y)}px`;
+    const rectA = cellA.getBoundingClientRect();
+    const rectB = cellB.getBoundingClientRect();
+    const leftClient = Math.min(rectA.left, rectB.left);
+    const topClient = Math.min(rectA.top, rectB.top);
+    const rightClient = Math.max(rectA.right, rectB.right);
+    const bottomClient = Math.max(rectA.bottom, rectB.bottom);
+
+    const start = clientToWrapCoords(leftClient, topClient);
+    const end = clientToWrapCoords(rightClient, bottomClient);
+
+    selectionBox.style.display = 'block';
+    selectionBox.style.left = `${start.x}px`;
+    selectionBox.style.top = `${start.y}px`;
+    selectionBox.style.width = `${Math.max(1, end.x - start.x)}px`;
+    selectionBox.style.height = `${Math.max(1, end.y - start.y)}px`;
 };
 
 const selectCellsInDragArea = (cellA, cellB, preserveExisting = false) => {
-  if (!preserveExisting) {
-    document.querySelectorAll('.data-table td.selected, .data-table th.selected').forEach(c => c.classList.remove('selected'));
-  }
-  const a = getCellCoordinates(cellA);
-  const b = getCellCoordinates(cellB);
-  const r1 = Math.min(a.rowIndex, b.rowIndex), r2 = Math.max(a.rowIndex, b.rowIndex);
-  const c1 = Math.min(a.cellIndex, b.cellIndex), c2 = Math.max(a.cellIndex, b.cellIndex);
-  const rows = table.querySelectorAll('tr');
-  for (let ri = r1; ri <= r2; ri++) {
-    const cols = rows[ri].querySelectorAll('td,th');
-    for (let ci = c1; ci <= c2; ci++) {
-      const cell = cols[ci];
-      if (cell) cell.classList.add('selected');
+    if (!preserveExisting) {
+        document.querySelectorAll('.data-table td.selected').forEach(c => c.classList.remove('selected'));
     }
-  }
+    const a = getCellCoordinates(cellA);
+    const b = getCellCoordinates(cellB);
+    const r1 = Math.min(a.rowIndex, b.rowIndex), r2 = Math.max(a.rowIndex, b.rowIndex);
+    const c1 = Math.min(a.cellIndex, b.cellIndex), c2 = Math.max(a.cellIndex, b.cellIndex);
+    const rows = table.querySelectorAll('tr');
+    for (let ri = r1; ri <= r2; ri++) {
+        const cols = rows[ri].querySelectorAll('td');
+        for (let ci = c1; ci <= c2; ci++) {
+            const cell = cols[ci];
+            if (cell) cell.classList.add('selected');
+        }
+    }
 };
 
 // --- Drag handlers ---
 const handleDragStart = (e) => {
-  if (e.button !== 0) return;
-  if (e.target.closest('.setting-panel') || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-  const cell = e.target.closest('td,th');
-  if (!cell) return;
+    if (e.button !== 0) return;
+    if (e.target.closest('.setting-panel') || e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+    const cell = e.target.closest('td');
+    if (!cell) return;
 
-  // Allow click->edit if contenteditable and no modifiers
-  if (cell.isContentEditable && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    // Allow click->edit if contenteditable and no modifiers
+    if (cell.isContentEditable && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        startCell = cell;
+        document.addEventListener('mousemove', handleDraggingCheck);
+        document.addEventListener('mouseup', handleDragEndCleanup);
+        return;
+    }
+
+    e.preventDefault();
+    dragStartClient = { x: e.clientX, y: e.clientY };
+
+    const preserve = !!e.shiftKey;
+    if (!preserve) clearSelection();
+
     startCell = cell;
-    document.addEventListener('mousemove', handleDraggingCheck);
-    document.addEventListener('mouseup', handleDragEndCleanup);
-    return;
-  }
+    endCell = cell;
+    isDragging = true;
+    updateSelectionBoxVisual(startCell, startCell);
 
-  e.preventDefault();
-  dragStartClient = { x: e.clientX, y: e.clientY };
-  const preserve = !!e.shiftKey;
-  if (!preserve) clearSelection();
-  startCell = cell;
-  endCell = cell;
-  isDragging = true;
-  updateSelectionBoxVisual(startCell, startCell);
-  document.addEventListener('mousemove', handleDragging);
-  document.addEventListener('mouseup', handleDragEnd);
+    document.addEventListener('mousemove', handleDragging);
+    document.addEventListener('mouseup', handleDragEnd);
 };
 
 const handleDraggingCheck = (e) => {
-  if (!startCell) return;
-  if (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2) {
-    isDragging = true;
-    document.removeEventListener('mousemove', handleDraggingCheck);
-    document.removeEventListener('mouseup', handleDragEndCleanup);
-    window.getSelection()?.removeAllRanges();
-    clearSelection();
-    endCell = startCell;
-    updateSelectionBoxVisual(startCell, startCell);
-    document.addEventListener('mousemove', handleDragging);
-    document.addEventListener('mouseup', handleDragEnd);
-  }
+    if (!startCell) return;
+    if (Math.abs(e.movementX) > 2 || Math.abs(e.movementY) > 2) {
+        isDragging = true;
+        document.removeEventListener('mousemove', handleDraggingCheck);
+        document.removeEventListener('mouseup', handleDragEndCleanup);
+        window.getSelection()?.removeAllRanges();
+        clearSelection();
+        endCell = startCell;
+        updateSelectionBoxVisual(startCell, startCell);
+        document.addEventListener('mousemove', handleDragging);
+        document.addEventListener('mouseup', handleDragEnd);
+    }
 };
 
 const handleDragEndCleanup = () => {
-  document.removeEventListener('mousemove', handleDraggingCheck);
-  document.removeEventListener('mouseup', handleDragEndCleanup);
-  startCell = null;
+    document.removeEventListener('mousemove', handleDraggingCheck);
+    document.removeEventListener('mouseup', handleDragEndCleanup);
+    startCell = null;
 };
 
 const handleDragging = (e) => {
-  if (!isDragging) return;
-  e.preventDefault();
-  const cellUnderMouse = e.target.closest('td,th');
-  if (cellUnderMouse && cellUnderMouse !== endCell) {
-    endCell = cellUnderMouse;
-    const preserve = !!(e.shiftKey || document.querySelectorAll('.data-table td.selected, .data-table th.selected').length > 0);
-    selectCellsInDragArea(startCell, endCell, preserve);
-    updateSelectionBoxVisual(startCell, endCell);
-  } else {
-    // free drag over empty space: draw selection box between dragStartClient and current mouse
-    const startWrap = clientToWrapCoords(dragStartClient.x, dragStartClient.y);
-    const currentWrap = clientToWrapCoords(e.clientX, e.clientY);
-    const x1 = Math.min(startWrap.x, currentWrap.x), y1 = Math.min(startWrap.y, currentWrap.y);
-    const x2 = Math.max(startWrap.x, currentWrap.x), y2 = Math.max(startWrap.y, currentWrap.y);
-    if (selectionBox) {
-      selectionBox.style.display = 'block';
-      selectionBox.style.left = `${x1}px`;
-      selectionBox.style.top = `${y1}px`;
-      selectionBox.style.width = `${Math.max(1, x2 - x1)}px`;
-      selectionBox.style.height = `${Math.max(1, y2 - y1)}px`;
+    if (!isDragging) return;
+    e.preventDefault();
+    const cellUnderMouse = e.target.closest('td');
+    if (cellUnderMouse && cellUnderMouse !== endCell) {
+        endCell = cellUnderMouse;
+        const preserve = !!(e.shiftKey || document.querySelectorAll('.data-table td.selected').length > 0);
+        selectCellsInDragArea(startCell, endCell, preserve);
+        updateSelectionBoxVisual(startCell, endCell);
+    } else {
+        const startWrap = clientToWrapCoords(dragStartClient.x, dragStartClient.y);
+        const currentWrap = clientToWrapCoords(e.clientX, e.clientY);
+        const x1 = Math.min(startWrap.x, currentWrap.x), y1 = Math.min(startWrap.y, currentWrap.y);
+        const x2 = Math.max(startWrap.x, currentWrap.x), y2 = Math.max(startWrap.y, currentWrap.y);
+        selectionBox.style.display = 'block';
+        selectionBox.style.left = `${x1}px`;
+        selectionBox.style.top = `${y1}px`;
+        selectionBox.style.width = `${Math.max(1, x2 - x1)}px`;
+        selectionBox.style.height = `${Math.max(1, y2 - y1)}px`;
     }
-  }
 };
 
 const handleDragEnd = (e) => {
-  if (!isDragging) return;
-  isDragging = false;
-  if (startCell && endCell) {
-    const preserve = !!(e.shiftKey || document.querySelectorAll('.data-table td.selected, .data-table th.selected').length > 0);
-    selectCellsInDragArea(startCell, endCell, preserve);
-  }
-  if (selectionBox) {
+    if (!isDragging) return;
+    isDragging = false;
+    if (startCell && endCell) {
+        const preserve = !!(e.shiftKey || document.querySelectorAll('.data-table td.selected').length > 0);
+        selectCellsInDragArea(startCell, endCell, preserve);
+    }
     selectionBox.style.display = 'none';
     selectionBox.style.width = '0px';
     selectionBox.style.height = '0px';
-  }
-  startCell = null;
-  endCell = null;
-  document.removeEventListener('mousemove', handleDragging);
-  document.removeEventListener('mouseup', handleDragEnd);
+    startCell = null; endCell = null;
+    document.removeEventListener('mousemove', handleDragging);
+    document.removeEventListener('mouseup', handleDragEnd);
 };
 
 // single clicks behavior (toggle/shift/etc.)
-if (table) {
-  table.addEventListener('click', (e) => {
-    const cell = e.target.closest('td,th');
+table.addEventListener('click', (e) => {
+    const cell = e.target.closest('td');
     if (!cell) return;
     if (isDragging) return;
-
     if (cell.isContentEditable && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
-      const range = document.createRange();
-      const sel = window.getSelection();
-      range.selectNodeContents(cell);
-      range.collapse(false);
-      sel.removeAllRanges();
-      sel.addRange(range);
-      cell.focus();
-      return;
+        const range = document.createRange();
+        const sel = window.getSelection();
+        range.selectNodeContents(cell);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        cell.focus();
+        return;
     }
-
     if (e.ctrlKey || e.metaKey) {
-      cell.classList.toggle('selected');
+        cell.classList.toggle('selected');
     } else if (e.shiftKey) {
-      const last = document.querySelector('.data-table td.selected, .data-table th.selected');
-      if (last) selectCellsInDragArea(last, cell, true);
-      else {
+        const last = document.querySelector('.data-table td.selected');
+        if (last) selectCellsInDragArea(last, cell, true);
+        else { clearSelection(); cell.classList.add('selected'); }
+    } else {
         clearSelection();
         cell.classList.add('selected');
-      }
-    } else {
-      clearSelection();
-      cell.classList.add('selected');
     }
-  });
-}
+});
 
 // prevent native drag
 document.addEventListener('dragstart', (e) => e.preventDefault());
-if (table) table.addEventListener('mousedown', handleDragStart);
+table.addEventListener('mousedown', handleDragStart);
 
 // --- UI actions: color palette, apply color, font size, row heights, download ---
 
 // If header controls are missing in HTML, create them dynamically inside settingPanel
 const ensureHeaderControls = () => {
-  if (!settingPanel) return;
-  if (!headerRowHeightInput || !applyHeaderRowHeightBtn) {
-    const container = document.createElement('div');
-    container.style.marginTop = '12px';
-    container.innerHTML = `
-      <label style="display:block; color:#ffdd66; margin-bottom:6px;">🔺 표 최상단 헤더 행 높이 (px)</label>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <input id="headerRowHeightInput" type="number" value="40" min="8" style="width:70px; padding:6px; color:black; border-radius:3px; border:none;">
-        <button id="applyHeaderRowHeightBtn" class="height-apply-btn" data-target="table-header" style="padding:6px 10px; background:#555; color:white; border-radius:3px; border:none; cursor:pointer;">적용</button>
-      </div>
-    `;
-    settingPanel.appendChild(container);
-    headerRowHeightInput = document.getElementById('headerRowHeightInput');
-    applyHeaderRowHeightBtn = document.getElementById('applyHeaderRowHeightBtn');
-    if (applyHeaderRowHeightBtn) {
-      applyHeaderRowHeightBtn.addEventListener('click', () => applyRowHeight('table-header', headerRowHeightInput.value));
+    if (!settingPanel) return;
+    if (!headerRowHeightInput || !applyHeaderRowHeightBtn) {
+        const container = document.createElement('div');
+        container.style.marginTop = '12px';
+        container.innerHTML = `
+            <label style="display:block; color:#ffdd66; margin-bottom:6px;">🔺 표 최상단 헤더 행 높이 (px)</label>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input id="headerRowHeightInput" type="number" value="40" min="8" style="width:70px; padding:6px; color:black; border-radius:3px; border:none;">
+                <button id="applyHeaderRowHeightBtn" class="height-apply-btn" data-target="table-header" style="padding:6px 10px; background:#555; color:white; border-radius:3px; border:none; cursor:pointer;">적용</button>
+            </div>
+        `;
+        settingPanel.appendChild(container);
+        headerRowHeightInput = document.getElementById('headerRowHeightInput');
+        applyHeaderRowHeightBtn = document.getElementById('applyHeaderRowHeightBtn');
+
+        applyHeaderRowHeightBtn.addEventListener('click', () => applyRowHeight('table-header', headerRowHeightInput.value));
     }
-  }
 };
 
 // build palette UI
 const buildPalette = () => {
-  if (!colorPaletteContainer) return;
-  colorPaletteContainer.innerHTML = '';
-  COLOR_PALETTE.forEach(hex => {
-    const sw = document.createElement('div');
-    sw.className = 'color-swatch';
-    sw.title = hex;
-    sw.style.background = hex;
-    // basic swatch styling if CSS not present
-    sw.style.width = '28px';
-    sw.style.height = '20px';
-    sw.style.border = '1px solid rgba(0,0,0,0.15)';
-    sw.style.borderRadius = '3px';
-    sw.style.cursor = 'pointer';
-    sw.style.margin = '4px';
-    sw.addEventListener('click', () => applyColorToSelection(hex));
-    colorPaletteContainer.appendChild(sw);
-  });
+    if (!colorPaletteContainer) return;
+    colorPaletteContainer.innerHTML = '';
+    COLOR_PALETTE.forEach(hex => {
+        const sw = document.createElement('div');
+        sw.className = 'color-swatch';
+        sw.title = hex;
+        sw.style.background = hex;
+        sw.addEventListener('click', () => applyColorToSelection(hex));
+        colorPaletteContainer.appendChild(sw);
+    });
 };
 
 // determine whether to set text color or background
 const getColorTarget = () => {
-  for (const r of colorTargetRadios) if (r.checked) return r.value;
-  return 'text';
+    for (const r of colorTargetRadios) if (r.checked) return r.value;
+    return 'text';
 };
 
 const applyColorToSelection = (hex) => {
-  const target = getColorTarget();
-  const sels = document.querySelectorAll('.data-table td.selected, .data-table th.selected');
-  if (!sels.length) return;
-  sels.forEach(cell => {
-    if (target === 'text') cell.style.color = hex;
-    else cell.style.backgroundColor = hex;
-  });
-  saveTableState();
+    const target = getColorTarget();
+    const sels = document.querySelectorAll('.data-table td.selected');
+    if (!sels.length) return;
+    sels.forEach(cell => {
+        if (target === 'text') cell.style.color = hex;
+        else cell.style.backgroundColor = hex;
+    });
+    saveTableState();
 };
 
 // font size apply
-if (applyFontSizeBtn && fontSizeInput) {
-  applyFontSizeBtn.addEventListener('click', () => {
-    const v = fontSizeInput.value;
-    if (!v) return;
-    const sels = document.querySelectorAll('.data-table td.selected, .data-table th.selected');
-    if (!sels.length) return;
-    sels.forEach(c => c.style.fontSize = `${v}px`);
-    saveTableState();
-  });
+if (applyFontSizeBtn) {
+    applyFontSizeBtn.addEventListener('click', () => {
+        const v = fontSizeInput.value;
+        if (!v) return;
+        const sels = document.querySelectorAll('.data-table td.selected');
+        if (!sels.length) return;
+        sels.forEach(c => c.style.fontSize = `${v}px`);
+        saveTableState();
+    });
 }
 
 // apply row height function (includes table-header, top-data, middle-notice, bottom-data)
 const applyRowHeight = (target, value) => {
-  const v = Number(value);
-  if (isNaN(v)) return;
+    const v = Number(value);
+    if (isNaN(v)) return;
 
-  if (target === 'table-header') {
-    const headerRows = document.querySelectorAll('.main-header-row, .table-title-row, .title-header-row');
-    if (headerRows && headerRows.length) {
-      headerRows.forEach(r => r.querySelectorAll('td,th').forEach(cell => cell.style.height = `${v}px`));
-    } else {
-      const firstRow = table?.querySelector('tr');
-      if (firstRow) firstRow.querySelectorAll('td,th').forEach(cell => cell.style.height = `${v}px`);
+    if (target === 'table-header') {
+        // prefer explicit header class; fallback to first row of table
+        const headerRows = document.querySelectorAll('.main-header-row, .table-title-row, .title-header-row');
+        if (headerRows && headerRows.length) {
+            headerRows.forEach(r => r.querySelectorAll('td,th').forEach(cell => cell.style.height = `${v}px`));
+        } else {
+            const firstRow = table.querySelector('tr');
+            if (firstRow) firstRow.querySelectorAll('td,th').forEach(cell => cell.style.height = `${v}px`);
+        }
+    } else if (target === 'top-data') {
+        document.querySelectorAll('.top-data-row, .top-data-header').forEach(r => {
+            r.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
+        });
+        // top notice a bit taller
+        document.querySelectorAll('.top-notice-row td').forEach(td => td.style.height = `${v + 10}px`);
+    } else if (target === 'middle-notice') {
+        // reliably target middle-notice rows
+        document.querySelectorAll('.middle-notice-row, .middle-notice-row td').forEach(el => {
+            // if it's a <tr> set its cells, if td set itself
+            if (el.tagName === 'TR') {
+                el.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
+            } else {
+                el.style.height = `${v}px`;
+            }
+        });
+    } else if (target === 'bottom-data') {
+        document.querySelectorAll('.bottom-data-row, .bottom-data-header').forEach(r => {
+            r.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
+        });
     }
-  } else if (target === 'top-data') {
-    document.querySelectorAll('.top-data-row, .top-data-header').forEach(r => {
-      r.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
-    });
-    // top notice a bit taller if exists
-    document.querySelectorAll('.top-notice-row td').forEach(td => td.style.height = `${v + 10}px`);
-  } else if (target === 'middle-notice') {
-    document.querySelectorAll('.middle-notice-row').forEach(tr => {
-      tr.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
-    });
-    document.querySelectorAll('.middle-notice-row td').forEach(td => td.style.height = `${v}px`);
-  } else if (target === 'bottom-data') {
-    document.querySelectorAll('.bottom-data-row, .bottom-data-header').forEach(r => {
-      r.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
-    });
-  }
 
-  saveTableState();
+    saveTableState();
 };
 
 // hook buttons (guard for missing elements)
-if (applyTopRowHeightBtn && topRowHeightInput) {
-  applyTopRowHeightBtn.addEventListener('click', () => applyRowHeight('top-data', topRowHeightInput.value));
-}
-if (applyMiddleNoticeRowHeightBtn && middleNoticeRowHeightInput) {
-  applyMiddleNoticeRowHeightBtn.addEventListener('click', () => applyRowHeight('middle-notice', middleNoticeRowHeightInput.value));
-}
-if (applyBottomRowHeightBtn && bottomRowHeightInput) {
-  applyBottomRowHeightBtn.addEventListener('click', () => applyRowHeight('bottom-data', bottomRowHeightInput.value));
-}
+if (applyTopRowHeightBtn) applyTopRowHeightBtn.addEventListener('click', () => applyRowHeight('top-data', topRowHeightInput.value));
+if (applyMiddleNoticeRowHeightBtn) applyMiddleNoticeRowHeightBtn.addEventListener('click', () => applyRowHeight('middle-notice', middleNoticeRowHeightInput.value));
+if (applyBottomRowHeightBtn) applyBottomRowHeightBtn.addEventListener('click', () => applyRowHeight('bottom-data', bottomRowHeightInput.value));
 
 // download using html2canvas
 if (downloadButton) {
-  downloadButton.addEventListener('click', async () => {
-    if (typeof html2canvas === 'undefined') {
-      alert('html2canvas가 로드되지 않았습니다.');
-      return;
-    }
-    const captureArea = document.getElementById('capture-area');
-    if (!captureArea) return;
-    const selectedCells = document.querySelectorAll('.data-table td.selected, .data-table th.selected');
-    selectedCells.forEach(c => c.classList.add('temp-remove-outline'));
-    try {
-      const canvas = await html2canvas(captureArea, { backgroundColor: null, scale: 2, useCORS: true, scrollY: -window.scrollY });
-      const url = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `table_capture_${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (err) {
-      console.error('html2canvas error', err);
-      alert('이미지 생성에 실패했습니다.');
-    } finally {
-      selectedCells.forEach(c => c.classList.remove('temp-remove-outline'));
-    }
-  });
+    downloadButton.addEventListener('click', async () => {
+        if (typeof html2canvas === 'undefined') {
+            alert('html2canvas가 로드되지 않았습니다.');
+            return;
+        }
+        const captureArea = document.getElementById('capture-area');
+        if (!captureArea) return;
+        const selectedCells = document.querySelectorAll('.data-table td.selected');
+        selectedCells.forEach(c => c.classList.add('temp-remove-outline'));
+        try {
+            const canvas = await html2canvas(captureArea, {
+                backgroundColor: null,
+                scale: 2,
+                useCORS: true,
+                scrollY: -window.scrollY
+            });
+            const url = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `table_capture_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } catch (err) {
+            console.error('html2canvas error', err);
+            alert('이미지 생성에 실패했습니다.');
+        } finally {
+            selectedCells.forEach(c => c.classList.remove('temp-remove-outline'));
+        }
+    });
 }
 
 // build palette and ensure header controls on load
