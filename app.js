@@ -401,9 +401,14 @@ const applyRowHeight = (target, value) => {
     // enlarge top-notice slightly to keep legibility
     document.querySelectorAll('.top-notice-row td').forEach(td => td.style.height = `${v + 10}px`);
   } else if (target === 'middle-notice') {
-    // reliable application for middle-notice rows
-    document.querySelectorAll('.middle-notice-row').forEach(tr => tr.querySelectorAll('td').forEach(td => td.style.height = `${v}px`));
-  } else if (target === 'bottom-data') {
+            const rows = document.querySelectorAll('.middle-notice-row');
+            rows.forEach(r => {
+                r.querySelectorAll('td').forEach(td => {
+                    td.style.height = `${v}px`;
+                    td.style.lineHeight = `${v}px`;
+                });
+            });
+        } else if (target === 'bottom-data') {
     document.querySelectorAll('.bottom-data-row, .bottom-data-header').forEach(r => {
       r.querySelectorAll('td').forEach(td => td.style.height = `${v}px`);
     });
