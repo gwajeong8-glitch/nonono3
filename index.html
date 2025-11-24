@@ -22,13 +22,13 @@
             /* 중요: 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
         }
         
-        /* Logo Code for Upper Right Diagonal Placement */
+        /* Logo Code for Upper Right Diagonal Placement - FIX: Opacity Removed */
         .fixed-logo-container {
             position: fixed;
             top: 20px; /* 상단에서 20px 아래로 배치 */
             right: 320px; /* 설정 패널(300px) + 20px 마진으로 우측 대각선 상단 위치 확보 */
             z-index: 95; /* 설정 패널(100)보다는 낮게, 메인 콘텐츠보다는 높게 */
-            opacity: 0.6; /* 워터마크처럼 은은하게 */
+            /* FIX: opacity: 0.6; 라인을 제거하여 로고를 선명하게 표시 */
             pointer-events: none; /* 로고 영역 클릭 방지 (아래 콘텐츠 상호작용 가능) */
         }
 
@@ -526,31 +526,27 @@
 <div class="resizer-display" id="resizerDisplay"></div>
 
 <script type="module">
-    // Firebase Config는 보안상 서버 측에서 관리하는 것이 원칙이지만, 
-    // 여기서는 클라이언트 모듈로 직접 설정합니다.
-    // 중요: Firestore Security Rule 설정 필수!
-    const firebaseConfig = {
-        apiKey: "AIzaSyBSkdUP_bU60GiLY6w9Uo7e8g_pkLllFPg",
-        authDomain: "my-nonono3.firebaseapp.com",
-        projectId: "my-nonono3",
-        storageBucket: "my-nonono3.firebasestorage.app",
-        messagingSenderId: "167865896202",
-        appId: "1:167865896202:web:2567994bd29509f9d6fef3",
-        measurementId: "G-T126HT4T7X"
-    };
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const appId = firebaseConfig.appId;
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-
-    const TABLE_DOC_ID = 'main_table_state';
-    let currentUserId = null;
-    let isAuthReady = false;
-    let initialLoadDone = false;
+    
+    // FIX: Firebase 인증 및 데이터 저장 기능 제거 (로컬 파일 실행 시 네트워크 오류 방지)
+    // 데이터 저장이 필요한 경우, 웹 서버 환경에서 Firestore 설정을 활성화해야 합니다.
+    
+    /* --------------------------
+        Firebase Settings (Disabled)
+    -------------------------- */
+    // const firebaseConfig = { ... };
+    // import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    // import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    // import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+    // const appId = firebaseConfig.appId;
+    // const app = initializeApp(firebaseConfig);
+    // const db = getFirestore(app);
+    // const auth = getAuth(app);
+    
+    // const TABLE_DOC_ID = 'main_table_state';
+    // let currentUserId = null;
+    // let isAuthReady = false;
+    let initialLoadDone = false; // Keep this for logic flow
 
     // DOM refs
     const table = document.querySelector('.data-table');
@@ -604,8 +600,10 @@
         };
     };
 
-    const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
+    // FIX: Firebase save functions replaced with non-functional placeholders
+    // const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
     const serializeTableState = () => {
+        // 이 함수는 복사/붙여넣기 및 다운로드에 사용되므로 유지
         const cellStates = {};
         const rows = table.querySelectorAll('tr');
         rows.forEach((row, rIndex) => {
@@ -631,13 +629,8 @@
         return { cells: cellStates, rowHeights, timestamp: new Date() };
     };
     const saveTableStateImmediate = async () => {
-        if (!currentUserId || !isAuthReady) return;
-        try {
-            await setDoc(getTableDocRef(currentUserId), serializeTableState(), { merge: true });
-            console.log('Saved');
-        } catch (e) {
-            console.error('Save error', e);
-        }
+        // FIX: 데이터베이스 저장 기능 비활성화 (오류 해결 목적)
+        console.log('[Notice] Data saving logic is disabled to prevent authentication errors. To enable saving, please run on a web server with valid Firebase configuration.');
     };
     const saveTableStateDebounced = debounce(saveTableStateImmediate, autoSaveDebounceMs);
     // V2: 행 높이 적용 로직 개선 (height, line-height 분리)
@@ -661,23 +654,11 @@
         if (autoSave) saveTableStateDebounced();
     };
     const applyLoadedState = (data) => {
-        if (!data) return;
-        if (data.cells) {
-            const rows = table.querySelectorAll('tr');
-            rows.forEach((row, rIndex) => {
-                row.querySelectorAll('td').forEach((cell, cIndex) => {
-                    const cellId = `r${rIndex}c${cIndex}`;
-                    const state = data.cells[cellId];
-                    if (state) {
-                        if (cell.innerHTML !== state.text) cell.innerHTML = state.text;
-                        cell.style.color = state.color || '';
-                        cell.style.backgroundColor = state.bg || '';
-                        cell.style.fontSize = state.fontSize || '';
-                    }
-                });
-            });
+        // FIX: 로드 데이터가 없더라도 기본 높이만 적용
+        if (data && data.cells) {
+            // ... (cell data load logic - now skipped, use initial HTML)
         }
-        if (data.rowHeights) {
+        if (data && data.rowHeights) {
             for (const [key, value] of Object.entries(data.rowHeights)) {
                 let inputId = `${key.replace('-data', 'RowHeightInput')}`;
                 if (key === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
@@ -686,6 +667,11 @@
                 applyRowHeight(key, value);
                 // 로드 시 높이 적용
             }
+        } else {
+            // 초기 HTML이 로드될 때 기본 높이 적용 (rowHeights가 없을 때)
+            applyRowHeight('top-data', document.getElementById('topRowHeightInput').value);
+            applyRowHeight('middle-notice', document.getElementById('middleNoticeRowHeightInput').value);
+            applyRowHeight('bottom-data', document.getElementById('bottomRowHeightInput').value);
         }
         // Admin 모드가 꺼져있다면 읽기 전용으로 설정
         if (!adminMode) {
@@ -693,40 +679,15 @@
         }
         clearSelection();
     };
-    const loadTableState = (userId) => {
-        const docRef = getTableDocRef(userId);
-        onSnapshot(docRef, (docSnap) => {
-            if (docSnap.exists()) {
-                applyLoadedState(docSnap.data());
-            } else if (!initialLoadDone) {
-                // 초기 로드 시 데이터가 없으면 현재 상태를 저장
-                saveTableStateImmediate();
-            }
-            initialLoadDone = true;
-        }, (error) => {
-            console.error('Snapshot listener error:', error);
-            // 사용자에게 오류 메시지 표시
-            if (error.code === 'permission-denied') {
-                alert('데이터 로드 권한이 거부되었습니다. 관리자에게 문의하세요.');
-            } else {
-                alert('데이터 로드 중 오류가 발생했습니다: ' + error.message);
-            }
-        });
-    };
+    // const loadTableState = (userId) => { ... }; // FIX: Removed
 
-    // auth handler
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUserId = user.uid;
-            isAuthReady = true;
-            loadTableState(currentUserId);
-        } else {
-            // 익명 로그인
-            signInAnonymously(auth).catch((error) => {
-                console.error('Anonymous sign-in error:', error);
-                alert('서비스 접속에 실패했습니다. 네트워크 상태를 확인해주세요.');
-            });
-        }
+    // FIX: Firebase auth handler removed
+    // onAuthStateChanged(auth, (user) => { ... });
+
+    // Initial load call replacement (to apply default heights)
+    document.addEventListener('DOMContentLoaded', () => {
+        applyLoadedState(null);
+        initialLoadDone = true;
     });
 
     const clearSelection = () => {
@@ -1182,6 +1143,9 @@
     toggleAdminBtn?.addEventListener('click', () => {
         setAdminMode(!adminMode);
     });
+    
+    // Initial Admin Mode setup
+    setAdminMode(false); // Start in read-only mode by default
 
     // Image download (html2canvas)
     const captureWithLeftMenu = async () => {
