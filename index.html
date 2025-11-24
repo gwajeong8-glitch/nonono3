@@ -20,7 +20,15 @@
             min-height: 100vh;
             user-select: none; /* 중요: 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
         }
-
+        /* Add this style for the logo */
+        #logo {
+            position: absolute;
+            top: 20px; /* Adjust as needed */
+            right: 20px; /* Adjust as needed */
+            transform: rotate(45deg); /* To make it diagonal */
+            z-index: 101;
+            width: 120px; /* Adjust logo size */
+        }
         .wrap {
             flex-grow: 1;
             padding: 20px 20px 20px 200px;
