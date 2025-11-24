@@ -12,27 +12,23 @@
         /* Base Styling */
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            background-color: #1a1a1a; /* 요청하신 검은색 배경 유지 */
+            background-color: #1a1a1a;
             color: #ddd;
             margin: 0;
             padding: 0;
             display: flex;
             min-height: 100vh;
             user-select: none;
-            /* 중요: 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
+            /* 중요: 기본적으로 모든 요소의 드래그 선택 방지 (커스텀 선택을 위해) */
         }
         
-        /* Logo Code for Upper Right Diagonal Placement - FIX: Opacity Removed */
+        /* Logo Code for Upper Right Diagonal Placement */
         .fixed-logo-container {
             position: fixed;
-            top: 40px; /* 상단에서 20px 아래로 배치 */
+            top: 40px;
             right: 340px;
-            /* 설정 패널(300px) + 20px 마진으로 우측 대각선 상단 위치 확보 */
             z-index: 95;
-            /* 설정 패널(100)보다는 낮게, 메인 콘텐츠보다는 높게 */
-            /* FIX: opacity: 0.6; 라인을 제거하여 로고를 선명하게 표시 */
             pointer-events: none;
-            /* 로고 영역 클릭 방지 (아래 콘텐츠 상호작용 가능) */
         }
 
         .wrap {
@@ -202,7 +198,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             position: relative;
-            /* line-height: 1; -> app.js에서 동적으로 관리 */
             height: 15px;
             box-sizing: border-box;
             transition: background-color 0.1s, border-color 0.1s;
@@ -216,7 +211,6 @@
             text-align: left;
             padding: 8px 12px;
             height: 35px;
-            /* 높이 조절 버튼 추가로 인한 기본값 변경 (25px -> 35px) */
         }
         .top-notice-mark {
             color: #ffdd66;
@@ -245,12 +239,15 @@
             color: #ddd;
         }
 
-        /* Editable Content Styling */
+        /* 🚀 [FIX 1] Editable Content Styling - Ensure text selection works */
         .data-table td[contenteditable="true"] {
+            user-select: text !important; /* 브라우저 텍스트 선택 강제 허용 */
+            cursor: text;
             outline: none;
         }
         .data-table td[contenteditable="false"] {
             cursor: not-allowed;
+            user-select: none; /* 편집 불가능 셀은 선택 금지 */
         }
 
         /* Selection Box (for drag visual) */
@@ -292,7 +289,9 @@
 
 <div class="setting-panel" id="settingPanel">
     <div style="color: #ffdd66; margin-top: 5px; margin-bottom: 10px; font-weight: bold;">
-        ※ 사용법: 테이블 셀을 드래그하여 선택한 후, 아래 옵션을 클릭하면 적용됩니다.
+        ※ 사용법:
+        <br>1. **글자 편집**: 셀 클릭 후 바로 수정.
+        <br>2. **스타일 적용**: <span style="color:#00ffff;">`Ctrl` 또는 `Cmd` 키</span>를 누른 채 드래그하여 셀 선택 후 적용.
     </div>
 
     <div class="color-target-control">
@@ -357,7 +356,7 @@
             <button id="deleteColBtn" class="small-btn">열 삭제</button>
         </div>
         <div style="display:flex; gap:8px;">
-            <button id="toggleAdminBtn" class="small-btn" style="background: #a33;">관리자 모드: OFF</button>
+            <button id="toggleAdminBtn" class="small-btn" style="background: #4CAF50;">관리자 모드: ON</button>
             <button id="downloadBtn" class="small-btn" style="background: #4CAF50;">이미지 다운로드</button>
         </div>
     </div>
@@ -401,7 +400,7 @@
     <table class="data-table" id="capture-area">
         <tbody>
             <tr class="top-notice-row">
-                <td colspan="5"> <span class="top-notice-mark">DAMAGE!</span> 주의사항 4단계에서 일치 파트너십으로 통합된 유형만을 
+                <td colspan="5" contenteditable="true"> <span class="top-notice-mark">DAMAGE!</span> 주의사항 4단계에서 일치 파트너십으로 통합된 유형만을 
                     선택하여 공유 임무를 완료하며 함께 할때의 금일 결제 금액 후 공동 이익을 마감해야 합니다!
                 </td>
             </tr>
@@ -459,7 +458,7 @@
         
            
             <tr class="middle-notice-row">
-                <td colspan="5"> 1. 위 공동구매 회원들이 클리어 데이터를 지시에 따라 진행하지 못하여 실패로 인해 회원가입 및 계정 비활성화되어 출금불가 <br>
+                <td colspan="5" contenteditable="true"> 1. 위 공동구매 회원들이 클리어 데이터를 지시에 따라 진행하지 못하여 실패로 인해 회원가입 및 계정 비활성화되어 출금불가 <br>
                     2. 상호협력의 발전목적을 실천하기 위해 
                     공식적으로 1~2회 연속 클리어수정을 특별히 승인하였으며, 수정주문은 만장일치로 합의되어야 합니다.<br>
          
@@ -530,26 +529,6 @@
 
 <script type="module">
     
-    // FIX: Firebase 인증 및 데이터 저장 기능 제거 (로컬 파일 실행 시 네트워크 오류 방지)
-    // 데이터 저장이 필요한 경우, 웹 서버 환경에서 Firestore 설정을 활성화해야 합니다.
-    /* --------------------------
-        Firebase Settings (Disabled)
-    -------------------------- */
-    // const firebaseConfig = { ... };
-    // import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    // import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    // import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    
-    // const appId = firebaseConfig.appId;
-    // const app = initializeApp(firebaseConfig);
-    // const db = getFirestore(app);
-    // const auth = getAuth(app);
-    
-    // const TABLE_DOC_ID = 'main_table_state';
-    // let currentUserId = null;
-    // let isAuthReady = false;
-    let initialLoadDone = false; // Keep this for logic flow
-
     // DOM refs
     const table = document.querySelector('.data-table');
     const colorPaletteContainer = document.getElementById('colorPaletteContainer');
@@ -570,7 +549,6 @@
     const deleteRowBtn = document.getElementById('deleteRowBtn');
     const deleteColBtn = document.getElementById('deleteColBtn');
     const autoFitBtn = document.getElementById('autoFitBtn');
-    // New button ID
     const toggleAdminBtn = document.getElementById('toggleAdminBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadFullBtn = document.getElementById('downloadFullBtn');
@@ -591,11 +569,9 @@
     let selectedCells = new Set();
     let autoSave = false;
     let autoSaveDebounceMs = 800;
-    // 디바운스 타임
     let saveTimer = null;
-    // --- MODIFIED: 관리자 모드 기본값을 true로 변경하여 편집을 허용 ---
-    let adminMode = true; 
-    // 기본값은 활성화(편집 가능)
+    let adminMode = true; // 기본값은 활성화(편집 가능)
+    let initialLoadDone = false; 
 
     // helpers
     const debounce = (fn, ms) => {
@@ -605,8 +581,6 @@
         };
     };
 
-    // FIX: Firebase save functions replaced with non-functional placeholders
-    // const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
     const serializeTableState = () => {
         // 이 함수는 복사/붙여넣기 및 다운로드에 사용되므로 유지
         const cellStates = {};
@@ -626,7 +600,6 @@
         document.querySelectorAll('.height-apply-btn').forEach(button => {
             const target = button.dataset.target;
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
-            // ADDED: 최상단 공지 행 높이 저장 로직 추가
             if (target === 'top-notice') inputId = 'topNoticeRowHeightInput';
             if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
             const input = document.getElementById(inputId);
@@ -635,8 +608,8 @@
         return { cells: cellStates, rowHeights, timestamp: new Date() };
     };
     const saveTableStateImmediate = async () => {
-        // FIX: 데이터베이스 저장 기능 비활성화 (오류 해결 목적)
-        console.log('[Notice] Data saving logic is disabled to prevent authentication errors. To enable saving, please run on a web server with valid Firebase configuration.');
+        // FIX: 데이터베이스 저장 기능 비활성화 (로컬 사용)
+        console.log('[Notice] Data saving logic is disabled (local execution).');
     };
     const saveTableStateDebounced = debounce(saveTableStateImmediate, autoSaveDebounceMs);
     
@@ -671,79 +644,50 @@
         return row.classList.contains('top-data-row') || row.classList.contains('bottom-data-row');
     }
 
-    // --- NEW FUNCTION: 관리자 모드 토글 로직 추가 ---
+    // --- 관리자 모드 토글 로직 ---
     const toggleAdminMode = (forceState = null) => {
         adminMode = forceState !== null ? forceState : !adminMode;
         if (toggleAdminBtn) {
             toggleAdminBtn.textContent = `관리자 모드: ${adminMode ? 'ON' : 'OFF'}`;
-            toggleAdminBtn.style.background = adminMode ? '#4CAF50' : '#a33'; // 녹색: ON, 빨간색: OFF
+            toggleAdminBtn.style.background = adminMode ? '#4CAF50' : '#a33'; 
         }
 
         // 모든 셀에 contentEditable 상태 적용
-        table.querySelectorAll('td').forEach(td => {
-            const row = td.closest('tr');
+        table.querySelectorAll('tr').forEach(row => {
             const isHeader = row.classList.contains('top-data-header') || row.classList.contains('bottom-data-header');
-
-            if (isHeader) {
-                // 헤더는 항상 비활성화
-                td.contentEditable = false;
-            } else {
-                // 데이터 행 및 공지 행은 adminMode에 따라 활성화/비활성화
-                td.contentEditable = adminMode;
-            }
+            const isNoticeRow = row.classList.contains('top-notice-row') || row.classList.contains('middle-notice-row');
+            
+            row.querySelectorAll('td').forEach(td => {
+                if (isHeader) {
+                    td.contentEditable = false;
+                } else if (isNoticeRow) {
+                    // 공지 행은 adminMode에 관계없이 편집 가능하도록 유지 (사용자 요구사항을 따름)
+                    td.contentEditable = adminMode ? true : false; 
+                } else {
+                    // 데이터 행은 adminMode에 따라 활성화/비활성화
+                    td.contentEditable = adminMode;
+                }
+            });
         });
 
         clearSelection();
     };
 
-    // MODIFIED: applyLoadedState에서 adminMode 토글 로직 추가/변경
     const applyLoadedState = (state) => {
-        if (state && state.cells) {
-            Object.entries(state.cells).forEach(([id, data]) => {
-                const match = id.match(/r(\d+)c(\d+)/);
-                if (match) {
-                    const rIndex = parseInt(match[1]);
-                    const cIndex = parseInt(match[2]);
-                    const cell = table.rows[rIndex]?.cells[cIndex];
-                    if (cell) {
-                        cell.innerHTML = data.text;
-                        cell.style.color = data.color;
-                        cell.style.backgroundColor = data.bg;
-                        cell.style.fontSize = data.fontSize;
-                    }
-                }
-            });
-        }
+        // ... (data loading logic removed for simplicity in local execution)
 
-        if (state && state.rowHeights) {
-            Object.entries(state.rowHeights).forEach(([key, value]) => {
-                let inputId = `${key.replace('-data', 'RowHeightInput')}`;
-                if (key === 'top-notice') inputId = 'topNoticeRowHeightInput';
-                if (key === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
-                const input = document.getElementById(inputId);
-                if (input) input.value = value;
-                applyRowHeight(key, value);
-            });
-        } else {
-            // 초기 HTML이 로드될 때 기본 높이 적용
-            applyRowHeight('top-notice', document.getElementById('topNoticeRowHeightInput').value);
-            applyRowHeight('top-data', document.getElementById('topRowHeightInput').value);
-            applyRowHeight('middle-notice', document.getElementById('middleNoticeRowHeightInput').value);
-            applyRowHeight('bottom-data', document.getElementById('bottomRowHeightInput').value);
-        }
-
-        // --- MODIFIED: 관리자 모드 상태를 초기화하고 편집 가능하게 설정 ---
+        // 초기 HTML이 로드될 때 기본 높이 적용
+        applyRowHeight('top-notice', document.getElementById('topNoticeRowHeightInput').value);
+        applyRowHeight('top-data', document.getElementById('topRowHeightInput').value);
+        applyRowHeight('middle-notice', document.getElementById('middleNoticeRowHeightInput').value);
+        applyRowHeight('bottom-data', document.getElementById('bottomRowHeightInput').value);
+        
+        // 관리자 모드 상태 초기화
         toggleAdminMode(adminMode); 
 
         clearSelection();
     };
 
-    // const loadTableState = (userId) => { ... };
-    // FIX: Removed
-    // FIX: Firebase auth handler removed
-    // onAuthStateChanged(auth, (user) => { ... });
-
-    // Initial load call replacement (to apply default heights)
     document.addEventListener('DOMContentLoaded', () => { 
         initializeColorPalette(); 
         applyLoadedState(null); 
@@ -758,11 +702,8 @@
         endCell = null;
     };
 
-    const getCellPos = (cell) => {
-        if (!cell) return { rowIndex: -1, cellIndex: -1 };
-        return { rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex };
-    };
-
+    const getCellCoordinates = (cell) => ({ rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex });
+    
     const updateSelection = (startPos, endPos) => {
         const r1 = Math.min(startPos.rowIndex, endPos.rowIndex);
         const r2 = Math.max(startPos.rowIndex, endPos.rowIndex);
@@ -776,7 +717,7 @@
             for (let c = c1; c <= c2; c++) {
                 const cell = row.cells[c];
                 // colspan/rowspan 처리 (간단화를 위해 현재는 스킵)
-                if (cell && cell.contentEditable === 'true') { // 편집 가능한 셀만 선택되도록 필터링
+                if (cell) { // 이제 contentEditable 여부와 상관없이 선택 가능
                     cell.classList.add('selected');
                     selectedCells.add(cell);
                 }
@@ -808,43 +749,47 @@
         selectionBox.style.display = 'block';
     };
 
-    const getCellCoordinates = (cell) => ({ rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex });
     let lastMoveEndCell = null;
 
+    // 🚀 [FIX 2] handleMouseDown 로직 수정: Ctrl/Cmd 키로 멀티 셀 선택 모드 토글
     const handleMouseDown = (e) => {
-        // --- MODIFIED: contenteditable=false 셀은 드래그 선택을 시작하지 않음 ---
-        if (!e.target.closest('td') || e.target.closest('td').contentEditable !== 'true') return;
+        const clickedCell = e.target.closest('td');
+        if (!clickedCell) return;
         
-        clearSelection();
-        startCell = e.target.closest('td');
-        endCell = startCell;
+        // Ctrl(Windows/Linux) 또는 Meta(Cmd/Mac) 키를 눌렀는지 확인
+        const isMultiSelect = e.ctrlKey || e.metaKey; 
 
-        // 드래그를 시작할 때 이벤트 리스너 추가
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-        e.preventDefault();
-        // 텍스트 선택 방지 (user-select: none이 body에 있지만 혹시 몰라)
+        if (isMultiSelect) {
+            // 1. Ctrl/Cmd 키를 누른 경우: 커스텀 멀티 셀 선택 시작 (스타일 적용용)
+            clearSelection();
+            startCell = clickedCell; // 헤더 셀도 선택 가능하도록
+            endCell = startCell;
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            e.preventDefault(); // 브라우저의 기본 동작 (텍스트 선택) 방지
+        } else if (clickedCell.contentEditable === 'true') {
+            // 2. 일반 클릭 + 편집 가능 셀: 브라우저의 기본 텍스트 편집 기능을 허용
+            //    -> clearSelection만 해주고 브라우저가 나머지를 처리하도록 둡니다.
+            clearSelection();
+            // 단일 셀을 선택 상태로 남겨두는 로직 (선택 패널 사용을 위함)
+            clickedCell.classList.add('selected');
+            selectedCells.add(clickedCell);
+        } else {
+             // 3. 일반 클릭 + 편집 불가능 셀 (헤더 등): 단일 셀 선택만 적용
+             clearSelection();
+             clickedCell.classList.add('selected');
+             selectedCells.add(clickedCell);
+        }
     };
 
     const handleMouseMove = (e) => {
         if (!startCell) return;
         const currentCell = e.target.closest('td');
 
-        // --- MODIFIED: contenteditable=false 셀 위로 이동해도 드래그가 끊어지지 않도록 수정 ---
-        // if (!currentCell || currentCell === lastMoveEndCell) return; 
         if (!currentCell || currentCell === lastMoveEndCell) return; 
 
-        // 시작 셀과 다른 행/열의 셀이거나, contentEditable='true'인 셀에서만 endCell 업데이트
-        if (currentCell.contentEditable === 'true' || startCell === currentCell) {
-            endCell = currentCell;
-        } else {
-             // contenteditable=false인 셀을 지나갈 때는 endCell을 업데이트하지 않고 무시
-             // 하지만 드래그 선택 범위를 시각적으로 보여주기 위해 endCell을 유지
-             // 이 로직은 복잡해질 수 있으므로, contenteditable='true'인 셀만 선택되도록 updateSelection에서 처리합니다.
-             // endCell은 마우스 포인터가 있는 셀로 유지합니다.
-             endCell = currentCell;
-        }
-
+        endCell = currentCell;
         lastMoveEndCell = currentCell;
 
         if (startCell && endCell) {
@@ -861,12 +806,10 @@
         document.removeEventListener('mouseup', handleMouseUp);
         
         if (startCell && endCell && startCell !== endCell) {
-            // 드래그 완료 후 selectionBox 숨김 (선택된 셀에만 스타일 유지)
             selectionBox.style.display = 'none';
         } else if (startCell && startCell === endCell) {
-            // 단일 클릭
-            updateSelection(getCellCoordinates(startCell), getCellCoordinates(startCell));
             selectionBox.style.display = 'none';
+            // 단일 클릭 처리 로직은 handleMouseDown에서 이미 처리됨.
         }
         isDragging = false;
         lastMoveEndCell = null;
@@ -890,19 +833,21 @@
     };
 
     const handleColorClick = (e) => {
+        if (selectedCells.size === 0) {
+            alert('색상을 적용할 셀을 Ctrl/Cmd 키를 누른 채 드래그하여 선택하세요.');
+            return;
+        }
         const color = e.target.dataset.color;
         const targetType = document.querySelector('input[name="colorTarget"]:checked').value;
         selectedCells.forEach(cell => {
-            if (cell.contentEditable === 'true' || (cell.closest('tr').classList.contains('top-notice-row') && adminMode)) {
-                 if (targetType === 'text') {
-                    cell.style.color = color;
-                    if (color === '#FFFFFF' || color === '#000000') {
-                        // 기본 흰/검 색상일 경우 인라인 스타일 제거
-                        cell.style.removeProperty('color');
-                    }
-                } else {
-                    cell.style.backgroundColor = color;
+            if (targetType === 'text') {
+                cell.style.color = color;
+                if (color === '#FFFFFF' || color === '#000000') {
+                    // 기본 흰/검 색상일 경우 인라인 스타일 제거
+                    cell.style.removeProperty('color');
                 }
+            } else {
+                cell.style.backgroundColor = color;
             }
         });
         if (autoSave) saveTableStateDebounced();
@@ -910,11 +855,13 @@
 
     // Font size apply event
     applyFontSizeBtn?.addEventListener('click', () => {
+        if (selectedCells.size === 0) {
+            alert('글꼴 크기를 적용할 셀을 Ctrl/Cmd 키를 누른 채 드래그하여 선택하세요.');
+            return;
+        }
         const size = fontSizeInput.value;
         selectedCells.forEach(cell => {
-            if (cell.contentEditable === 'true') {
-                cell.style.fontSize = `${size}px`;
-            }
+            cell.style.fontSize = `${size}px`;
         });
         if (autoSave) saveTableStateDebounced();
     });
@@ -946,7 +893,7 @@
         const data = [];
         // 최소 하나의 셀을 선택한 경우에만 복사 진행
         if (selectedCells.size === 0) {
-            alert('복사할 셀을 선택하세요.');
+            alert('복사할 셀을 Ctrl/Cmd 키를 누른 채 드래그하여 선택하세요.');
             return;
         }
 
@@ -994,7 +941,7 @@
             const clipboard = JSON.parse(text);
 
             if (clipboard.type !== 'table_clip' || !Array.isArray(clipboard.data)) {
-                throw new Error('Invalid clipboard data');
+                throw new Error('클립보드 데이터 형식이 올바르지 않습니다.');
             }
 
             // 붙여넣기할 시작 셀을 선택된 셀 중에서 찾거나, 없으면 (0, 0)
@@ -1006,7 +953,7 @@
                 targetR = coords.rowIndex;
                 targetC = coords.cellIndex;
             } else {
-                alert('붙여넣기할 시작 셀을 선택하세요. 기본값: (0, 0)');
+                alert('붙여넣기할 시작 셀을 선택하세요.');
                 return;
             }
 
@@ -1019,6 +966,7 @@
                 if (!row) return;
 
                 const cell = row.cells[cIndex];
+                // 편집 가능한 셀만 붙여넣기 허용
                 if (!cell || cell.contentEditable !== 'true') return;
                 
                 cell.innerHTML = clipCell.html;
@@ -1044,7 +992,6 @@
             return;
         }
         const lastRowIndex = table.rows.length - 1;
-        const lastRow = table.rows[lastRowIndex];
 
         // 마지막 행이 데이터 행이 아니면, 마지막 데이터 행을 찾음
         let insertBeforeIndex = table.rows.length;
@@ -1054,7 +1001,6 @@
                 break;
             }
         }
-        // 기본적으로는 테이블 맨 끝에 추가 (위에 데이터 행이 없을 경우)
         
         // 컬럼 개수 결정 (Header Row의 컬럼 개수를 따름)
         const cols = table.querySelector('.top-data-header')?.cells.length || table.rows[0]?.cells.length || 5;
@@ -1087,7 +1033,8 @@
         if (rows.length === 0) return;
 
         // 마지막 컬럼 인덱스 (가장 긴 행을 기준으로)
-        const lastColIndex = rows[0]?.cells.length || 0;
+        const maxColLength = Array.from(rows).reduce((max, row) => Math.max(max, row.cells.length), 0);
+        const lastColIndex = maxColLength;
 
         for (let r = 0; r < rows.length; r++) {
             const row = rows[r];
@@ -1346,7 +1293,6 @@
             if (!it) return;
             topSubMenu.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));
             it.classList.add('active');
-            // 메뉴 클릭 시 상단 메뉴 표시도 업데이트
             const newMenuText = it.textContent.trim().split('\n')[0].trim();
             const indicatorText = menuIndicator.textContent.split(': ')[1];
             if (menuIndicator && indicatorText !== newMenuText) {
