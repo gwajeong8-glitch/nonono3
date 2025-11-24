@@ -22,15 +22,16 @@
             /* 중요: 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
         }
         
-        /* Logo Code for Upper Right Diagonal Placement */
-        .fixed-logo-container {
-            position: fixed;
-            top: 10px; /* 상단에서 20px 아래로 배치 */
-            right: 350px; /* 설정 패널(300px) + 20px 마진으로 우측 대각선 상단 위치 확보 */
-            z-index: 100; /* 설정 패널(100)보다는 낮게, 메인 콘텐츠보다는 높게 */
-            opacity: 0; /* 워터마크처럼 은은하게 */
-            pointer-events: none; /* 로고 영역 클릭 방지 (아래 콘텐츠 상호작용 가능) */
-        }
+       /* Add this style for the logo */
+#logo {
+    position: absolute;
+    top: 20px; /* Adjust as needed */
+    right: 20px; /* Adjust as needed */
+    transform: rotate(45deg); /* To make it diagonal */
+    z-index: 101;
+    width: 120px; /* Adjust logo size */
+}
+
 
         .wrap {
             flex-grow: 1;
