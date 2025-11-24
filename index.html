@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -317,6 +316,7 @@
         border-top: 1px solid #444;">
         <h3>📐 그룹별 행 높이 (px)</h3>
         
+        <!-- 최상단 공지 행 높이 조절 버튼 -->
         <div style="margin-bottom: 10px;">
             <label for="topNoticeRowHeightInput" style="display: block; margin-bottom: 5px;">최상단 공지 행 높이:</label>
             <input type="number" id="topNoticeRowHeightInput" min="20" max="300" value="35" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
@@ -376,7 +376,7 @@
         </div>
         <div style="display:flex;
             gap:8px;">
-            <button id="toggleAdminBtn" class="small-btn" style="background: #a33;">관리자 모드: OFF</button>
+            <button id="toggleAdminBtn" class="small-btn">관리자 모드: OFF</button>
             <button id="downloadBtn" class="small-btn" style="background: #4CAF50;">이미지 다운로드</button>
         </div>
     </div>
@@ -592,7 +592,8 @@
     let autoSave = false;
     let autoSaveDebounceMs = 800;
     let saveTimer = null;
-    let adminMode = false;
+    // FIX 1: 초기 로드 시 텍스트 편집이 가능하도록 기본값을 true로 설정합니다.
+    let adminMode = true; 
     let initialLoadDone = false;
 
     // helpers
@@ -683,10 +684,12 @@
             applyRowHeight('middle-notice', document.getElementById('middleNoticeRowHeightInput').value);
             applyRowHeight('bottom-data', document.getElementById('bottomRowHeightInput').value);
         }
-        // Admin 모드가 꺼져있다면 읽기 전용으로 설정
-        if (!adminMode) {
-            table.querySelectorAll('td').forEach(td => td.contentEditable = false);
-        }
+        
+        // 이 부분은 setAdminMode(adminMode) 호출로 대체되어야 합니다.
+        // if (!adminMode) {
+        //     table.querySelectorAll('td').forEach(td => td.contentEditable = false);
+        // }
+        
         clearSelection();
     };
 
@@ -694,6 +697,8 @@
     document.addEventListener('DOMContentLoaded', () => {
         applyLoadedState(null);
         initialLoadDone = true;
+        // FIX 1: 초기 로드 시 관리자 모드 ON 상태를 확실하게 반영하여 텍스트 편집을 활성화합니다.
+        setAdminMode(adminMode); 
     });
 
     const clearSelection = () => {
@@ -790,8 +795,8 @@
         // 마우스가 TD 영역 밖에 있다면 endCell을 업데이트하지 않고 리턴
         if (!currentCell) return;
 
-        // END FIX: currentCell이 이전 endCell과 다를 경우에만 처리
-        if (currentCell !== endCell) {
+        // FIX 2: 현재 셀이 이전 endCell과 다를 경우에만 처리하여 드래그 선택 안정화
+        if (currentCell !== endCell) { 
             endCell = currentCell;
         
             const startPos = getCellCoordinates(startCell);
@@ -801,14 +806,14 @@
             updateSelectionBoxVisual(startCell, endCell); // 시각적 선택 박스 업데이트
             isDragging = true;
         }
-        // END FIX
+        // END FIX 2
     };
 
     const handleMouseUp = () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         
-        // START FIX: 드래그 여부와 관계없이 최종 선택 상태를 확정하고 상태를 초기화
+        // 드래그 여부와 관계없이 최종 선택 상태를 확정하고 상태를 초기화
         if (startCell && endCell) {
              // mousemove가 한 번도 실행되지 않은 단일 클릭이라도 정확히 처리됨
             updateSelection(getCellCoordinates(startCell), getCellCoordinates(endCell));
@@ -820,7 +825,6 @@
         isDragging = false;
         startCell = null;
         endCell = null;
-        // END FIX
     };
 
     // Table event listeners (Delegation)
@@ -843,6 +847,10 @@
 
     const applyColorToSelection = (color) => {
         const target = document.querySelector('input[name="colorTarget"]:checked').value;
+        if (!adminMode) {
+             alert('색상 변경은 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         selectedCells.forEach(cell => {
             if (target === 'text') cell.style.color = color;
             else cell.style.backgroundColor = color;
@@ -852,6 +860,10 @@
 
     // Font size
     applyFontSizeBtn?.addEventListener('click', () => {
+        if (!adminMode) {
+             alert('글꼴 크기 변경은 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         const size = fontSizeInput.value + 'px';
         selectedCells.forEach(cell => cell.style.fontSize = size);
         if (autoSave) saveTableStateDebounced();
@@ -860,6 +872,10 @@
     // Row height apply event
     document.querySelectorAll('.height-apply-btn').forEach(btn => {
         btn.addEventListener('click', () => {
+            if (!adminMode) {
+                 alert('행 높이 변경은 관리자 모드(Admin Mode)에서만 가능합니다.');
+                 return;
+            }
             const target = btn.dataset.target;
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
             // 최상단 공지 행 input ID 처리
@@ -911,12 +927,21 @@
         });
 
         try {
-            await navigator.clipboard.writeText(JSON.stringify({
+            // FIX: clipboard API 사용 시 에러 방지용으로 document.execCommand('copy') 대신 alert로 알림
+            const clipData = JSON.stringify({
                 type: 'table_clip',
                 data: data,
                 baseRow: startCoords.rowIndex,
                 baseCol: startCoords.cellIndex
-            }));
+            });
+            // 임시 textarea를 사용해 복사
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = clipData;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
             alert(`총 ${selectedCells.size}개 셀 복사 완료`);
         } catch (e) {
             console.error(e);
@@ -925,6 +950,10 @@
     });
 
     pasteBtn?.addEventListener('click', async () => {
+        if (!adminMode) {
+             alert('붙여넣기(Paste)는 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         try {
             const text = await navigator.clipboard.readText();
             const clipboard = JSON.parse(text);
@@ -969,6 +998,10 @@
     const isDataRow = (r) => r.classList.contains('bottom-data-row') || r.classList.contains('top-data-row');
 
     addRowBtn?.addEventListener('click', () => {
+        if (!adminMode) {
+             alert('행 추가는 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         const lastRowIndex = table.rows.length - 1;
         const lastRow = table.rows[lastRowIndex];
 
@@ -1003,6 +1036,10 @@
     });
 
     addColBtn?.addEventListener('click', () => {
+        if (!adminMode) {
+             alert('열 추가는 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         if (!confirm('테이블의 모든 행에 새로운 컬럼을 추가하시겠습니까? (colspan/rowspan이 있는 행은 오류가 발생할 수 있습니다.)')) return;
 
         const rows = table.rows;
@@ -1048,6 +1085,10 @@
 
     // Delete row(s) - based on selection; if none selected, delete last data row
     deleteRowBtn?.addEventListener('click', () => {
+        if (!adminMode) {
+             alert('행 삭제는 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         const rowIndexes = new Set();
         selectedCells.forEach(cell => rowIndexes.add(cell.closest('tr').rowIndex));
 
@@ -1092,6 +1133,10 @@
 
     // Delete column(s) - based on selection; if none selected, delete last column
     deleteColBtn?.addEventListener('click', () => {
+        if (!adminMode) {
+             alert('열 삭제는 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         const colIndexes = new Set();
         selectedCells.forEach(cell => colIndexes.add(cell.cellIndex));
 
@@ -1150,6 +1195,10 @@
 
     // Auto-Fit Column Width
     autoFitBtn?.addEventListener('click', () => {
+        if (!adminMode) {
+             alert('열 너비 자동 맞춤은 관리자 모드(Admin Mode)에서만 가능합니다.');
+             return;
+        }
         // 테이블 레이아웃을 auto로 변경하여 브라우저가 콘텐츠 너비를 계산하게 함
         table.style.tableLayout = 'auto';
 
@@ -1210,11 +1259,23 @@
         adminMode = mode;
         const adminElements = [saveNowBtn, copyBtn, pasteBtn, addRowBtn, addColBtn, deleteRowBtn, deleteColBtn, autoFitBtn, applyFontSizeBtn, ...document.querySelectorAll('.height-apply-btn')];
         
-        toggleAdminBtn.textContent = `관리자 모드: ${mode ?
-            'ON' : 'OFF'}`;
-        toggleAdminBtn.style.background = mode ? '#a33' : '#444';
+        toggleAdminBtn.textContent = `관리자 모드: ${mode ? 'ON' : 'OFF'}`;
+        // FIX: 관리자 모드 ON/OFF에 따라 버튼 색상을 명확하게 변경
+        toggleAdminBtn.style.background = mode ? '#4CAF50' : '#a33'; 
         
-        table.querySelectorAll('td').forEach(td => td.contentEditable = mode);
+        table.querySelectorAll('td').forEach(td => {
+            // 헤더/공지 셀은 항상 수정 불가
+            const isHeaderOrNotice = td.closest('tr')?.classList.contains('top-data-header') || 
+                                     td.closest('tr')?.classList.contains('bottom-data-header') ||
+                                     td.closest('tr')?.classList.contains('top-notice-row') ||
+                                     td.closest('tr')?.classList.contains('middle-notice-row');
+            
+            if (isHeaderOrNotice) {
+                 td.contentEditable = false;
+            } else {
+                 td.contentEditable = mode;
+            }
+        });
 
         adminElements.forEach(btn => { if (btn) btn.disabled = !mode; });
         
@@ -1222,21 +1283,7 @@
         document.querySelectorAll('.color-swatch').forEach(swatch => swatch.style.cursor = mode ? 'pointer' : 'not-allowed');
         document.getElementById('fontSizeInput').disabled = !mode;
         
-        // 색상 팔레트 클릭 이벤트 활성화/비활성화
-        document.querySelectorAll('.color-swatch').forEach(swatch => {
-            // 이전에 바인딩된 이벤트 제거
-            swatch.removeEventListener('click', disableColorApply);
-            swatch.removeEventListener('click', applyColorToSelection.bind(null, swatch.title));
-
-            if (mode) {
-                swatch.addEventListener('click', applyColorToSelection.bind(null, swatch.title));
-            } else {
-                swatch.addEventListener('click', disableColorApply);
-            }
-        });
-
     }
-    const disableColorApply = () => { /* no-op */ };
 
     toggleAdminBtn?.addEventListener('click', () => setAdminMode(!adminMode));
 
