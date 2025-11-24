@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -21,16 +22,14 @@
             /* 중요: 드래그 선택 시 브라우저 기본 텍스트 선택 방지 */
         }
         
-        /* Logo Code for Upper Right Diagonal Placement - FIX: Opacity Removed */
+        /* Logo Code for Upper Right Diagonal Placement */
         .fixed-logo-container {
             position: fixed;
-            top: 40px; /* 상단에서 40px 아래로 배치 */
-            right: 340px;
-            /* 설정 패널(300px) + 40px 마진으로 우측 대각선 상단 위치 확보 */
-            z-index: 95;
-            /* 설정 패널(100)보다는 낮게, 메인 콘텐츠보다는 높게 */
-            pointer-events: none;
-            /* 로고 영역 클릭 방지 (아래 콘텐츠 상호작용 가능) */
+            top: 20px; /* 상단에서 20px 아래로 배치 */
+            right: 320px; /* 설정 패널(300px) + 20px 마진으로 우측 대각선 상단 위치 확보 */
+            z-index: 95; /* 설정 패널(100)보다는 낮게, 메인 콘텐츠보다는 높게 */
+            opacity: 0.6; /* 워터마크처럼 은은하게 */
+            pointer-events: none; /* 로고 영역 클릭 방지 (아래 콘텐츠 상호작용 가능) */
         }
 
         .wrap {
@@ -133,7 +132,8 @@
         .menu:hover {
             color: #fff;
         }
-        .menu.active { color: #fff; font-weight: 600; border-bottom: 2px solid #ffdd66; padding-bottom: 6px; }
+        .menu.active { color: #fff; font-weight: 600; border-bottom: 2px solid #ffdd66; padding-bottom: 6px;
+        }
 
         /* Left menu */
         .left-menu {
@@ -213,7 +213,7 @@
             font-weight: bold;
             text-align: left;
             padding: 8px 12px;
-            height: 35px; /* 높이 조절 버튼 추가로 인한 기본값 변경 (25px -> 35px) */
+            height: 25px;
         }
         .top-notice-mark {
             color: #ffdd66;
@@ -269,7 +269,9 @@
         }
 
         /* Resizer Styling (Placeholder) */
-        .col-resizer { position: absolute; right: -4px; top: 0; width: 8px; height: 100%; cursor: col-resize; z-index: 20; }
+        .col-resizer { position: absolute;
+            right: -4px; top: 0; width: 8px; height: 100%; cursor: col-resize; z-index: 20;
+        }
         .row-resizer { position: absolute; bottom: -4px; right: 0; width: 100%; height: 8px;
             cursor: row-resize; z-index: 20; }
         .resizer-display { position: fixed; padding: 5px 10px;
@@ -278,8 +280,10 @@
 
         /* small responsive fix */
         @media (max-width: 900px) {
-            .wrap { padding-left: 20px; }
-            .left-menu { display: none; }
+            .wrap { padding-left: 20px;
+            }
+            .left-menu { display: none;
+            }
         }
     </style>
 </head>
@@ -312,21 +316,12 @@
         <button id="applyFontSizeBtn" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer; transition: background 0.2s;">적용</button>
     </div>
 
-    <div style="margin-top: 15px; padding-top: 15px;
-        border-top: 1px solid #444;">
+    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #444;">
         <h3>📐 그룹별 행 높이 (px)</h3>
-        
-        <!-- 최상단 공지 행 높이 조절 버튼 -->
-        <div style="margin-bottom: 10px;">
-            <label for="topNoticeRowHeightInput" style="display: block; margin-bottom: 5px;">최상단 공지 행 높이:</label>
-            <input type="number" id="topNoticeRowHeightInput" min="20" max="300" value="35" style="width: 60px; padding: 5px; color: black; border-radius: 3px; border: none;">
-            <button id="applyTopNoticeRowHeightBtn" class="height-apply-btn" data-target="top-notice" style="margin-left: 5px; padding: 5px 12px; background: #555; color: white; border: none; border-radius: 3px; cursor: pointer;">적용</button>
-        </div>
         
         <div style="margin-bottom: 10px;">
            
-            <label for="topRowHeightInput" style="display: block;
-                margin-bottom: 5px;">상단 데이터 행 높이:</label>
+            <label for="topRowHeightInput" style="display: block; margin-bottom: 5px;">상단 데이터 행 높이:</label>
             <input type="number" id="topRowHeightInput" min="10" max="200" value="25" style="width: 60px;
                 padding: 5px; color: black; border-radius: 3px; border: none;">
             <button id="applyTopRowHeightBtn" class="height-apply-btn" data-target="top-data" style="margin-left: 5px;
@@ -376,7 +371,7 @@
         </div>
         <div style="display:flex;
             gap:8px;">
-            <button id="toggleAdminBtn" class="small-btn">관리자 모드: OFF</button>
+            <button id="toggleAdminBtn" class="small-btn" style="background: #a33;">관리자 모드: OFF</button>
             <button id="downloadBtn" class="small-btn" style="background: #4CAF50;">이미지 다운로드</button>
         </div>
     </div>
@@ -410,8 +405,7 @@
 
     <div class="top-sub-menu" id="topSubMenu">
         <div class="menu active">블레스 전국 프레스티지 서비스</div>
-        <div class="menu">VIP 
-            회원 전용 통합 
+        <div class="menu">VIP 회원 전용 통합 
             매니지먼트</div>
         <div class="menu">노블레스 회원 전용룸</div>
     </div>
@@ -421,8 +415,7 @@
     <table class="data-table" id="capture-area">
         <tbody>
             <tr class="top-notice-row">
-                <td colspan="5">
-             
+                <td colspan="5" contenteditable="false">
                     <span class="top-notice-mark">DAMAGE!</span> 주의사항 4단계에서 일치 파트너십으로 통합된 유형만을 
                     선택하여 공유 임무를 완료하며 함께 할때의 금일 결제 금액 후 공동 이익을 마감해야 합니다!
                 </td>
@@ -439,7 +432,6 @@
             
             <tr class="top-data-row">
                 <td contenteditable="false">jkgov1203</td>
-         
                 <td contenteditable="false">발송 완료</td>
    
                 <td contenteditable="false">승인 완료</td>
@@ -447,7 +439,6 @@
                 <td contenteditable="false">NBS001001001</td>
             </tr>
             <tr class="top-data-row">
-           
                 <td contenteditable="false">sxcv4752</td>
          
                 <td contenteditable="false">검수 대기</td>
@@ -455,14 +446,12 @@
                 <td contenteditable="false">NSACT2032898</td>
                 <td contenteditable="false">NBS001001002</td>
             </tr>
-    
             <tr class="top-data-row">
                
                 <td contenteditable="false">qwerty24689</td>
                 <td contenteditable="false">진행 중</td>
                 <td contenteditable="false">승인 완료</td>
                 <td contenteditable="false">NSACT2032899</td>
-      
                 <td contenteditable="false">NBS001001003</td>
             </tr>
             <tr class="top-data-row">
@@ -470,20 +459,17 @@
                 <td contenteditable="false">xsgf1575</td>
                 <td contenteditable="false">발송 오류</td>
                 <td contenteditable="false">비활성화</td>
-         
                 <td contenteditable="false">NSACT2032891</td>
                 <td contenteditable="false">NBS001001004</td>
             </tr>
      
         
             <tr class="middle-notice-row">
-                <td colspan="5">
-                   
+                <td colspan="5" contenteditable="false">
                     1. 위 공동구매 회원들이 클리어 데이터를 지시에 따라 진행하지 못하여 실패로 인해 회원가입 및 계정 비활성화되어 출금불가 <br>
                     2. 상호협력의 발전목적을 실천하기 위해 
                     공식적으로 1~2회 연속 클리어수정을 특별히 승인하였으며, 수정주문은 만장일치로 합의되어야 합니다.<br>
-                    3. 수정주문은 계좌와 계좌 이상 데이터 복구 후 
-                    출금 코드를 매니저 갱신을 완료해야 출금가능하며 데이터 완료 이전에는 현금 출금이 불가능합니다<br>
+                    3. 수정주문은 계좌와 계좌 이상 데이터 복구 후 출금 코드를 매니저 갱신을 완료해야 출금가능하며 데이터 완료 이전에는 현금 출금이 불가능합니다<br>
                     4.정산시스템에서 승인할 수 없어 출금할수 없게 되었습니다.
                     데이터 완료 이전에는 현금 출금이 불가능합니다.<br>
                     (예: 부활 포기한 계정의 경우 포인트출금 불가)
@@ -500,14 +486,12 @@
             </tr>
 
             <tr class="bottom-data-row">
-     
-           
+               
                 <td contenteditable="false">A</td>
                 <td contenteditable="false">[2종택1]</td>
                 <td contenteditable="false" style="color: #FF0000;">1,500,000</td>
                 <td contenteditable="false">1,650,000</td>
                 <td contenteditable="false" style="color: #FF0000;">0%</td>
- 
             </tr>
             <tr class="bottom-data-row">
  
@@ -515,7 +499,6 @@
                 <td contenteditable="false">[2종택1]</td>
                 <td contenteditable="false">2,500,000</td>
                 <td contenteditable="false">2,750,000</td>
-       
                 <td contenteditable="false">100%</td>
             </tr>
     
@@ -523,7 +506,6 @@
                 <td contenteditable="false">C</td>
                 <td contenteditable="false">[2종택1]</td>
                 <td contenteditable="false">0</td>
-          
                 <td contenteditable="false">0</td>
                 <td contenteditable="false" style="color: #FF0000;">0%</td>
     
@@ -531,7 +513,6 @@
             <tr class="bottom-data-row">
                 <td contenteditable="false">D</td>
                 <td contenteditable="false">[2종택1]</td>
-           
                 <td contenteditable="false">0</td>
                 <td contenteditable="false">0</td>
            
@@ -545,9 +526,32 @@
 <div class="resizer-display" id="resizerDisplay"></div>
 
 <script type="module">
-    
-    // FIX: Firebase 인증 및 데이터 저장 기능 제거 (로컬 파일 실행 시 네트워크 오류 방지)
-    
+    // Firebase Config는 보안상 서버 측에서 관리하는 것이 원칙이지만, 
+    // 여기서는 클라이언트 모듈로 직접 설정합니다.
+    // 중요: Firestore Security Rule 설정 필수!
+    const firebaseConfig = {
+        apiKey: "AIzaSyBSkdUP_bU60GiLY6w9Uo7e8g_pkLllFPg",
+        authDomain: "my-nonono3.firebaseapp.com",
+        projectId: "my-nonono3",
+        storageBucket: "my-nonono3.firebasestorage.app",
+        messagingSenderId: "167865896202",
+        appId: "1:167865896202:web:2567994bd29509f9d6fef3",
+        measurementId: "G-T126HT4T7X"
+    };
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const appId = firebaseConfig.appId;
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    const TABLE_DOC_ID = 'main_table_state';
+    let currentUserId = null;
+    let isAuthReady = false;
+    let initialLoadDone = false;
+
     // DOM refs
     const table = document.querySelector('.data-table');
     const colorPaletteContainer = document.getElementById('colorPaletteContainer');
@@ -567,12 +571,11 @@
     const addColBtn = document.getElementById('addColBtn');
     const deleteRowBtn = document.getElementById('deleteRowBtn');
     const deleteColBtn = document.getElementById('deleteColBtn');
-    const autoFitBtn = document.getElementById('autoFitBtn');
-    // New button ID
+    const autoFitBtn = document.getElementById('autoFitBtn'); // New button ID
     const toggleAdminBtn = document.getElementById('toggleAdminBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const downloadFullBtn = document.getElementById('downloadFullBtn');
-    
+
     // constants
     const COLOR_PALETTE = [
         '#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF00FF',
@@ -581,20 +584,17 @@
         '#A0522D', '#D2B48C', '#87CEEB', '#F08080', '#4682B4', '#DA70D6', '#B0C4DE', '#F4A460',
         '#5F9EA0', '#DDA0DD', '#7FFF00', '#6495ED', '#DC143C', '#FF8C00', '#9ACD32', '#40E0D0'
     ];
-    
-    // selection state
+    // selection
     let isDragging = false;
     let startCell = null;
     let endCell = null;
     let selectedCells = new Set();
-    
-    // save state
     let autoSave = false;
     let autoSaveDebounceMs = 800;
+    // 디바운스 타임
     let saveTimer = null;
-    // FIX 1: 초기 로드 시 텍스트 편집이 가능하도록 기본값을 true로 설정합니다.
-    let adminMode = true; 
-    let initialLoadDone = false;
+    let adminMode = false;
+    // 기본값은 비활성화(읽기 전용)
 
     // helpers
     const debounce = (fn, ms) => {
@@ -604,6 +604,7 @@
         };
     };
 
+    const getTableDocRef = (userId) => doc(db, 'artifacts', appId, 'users', userId, 'table_data', TABLE_DOC_ID);
     const serializeTableState = () => {
         const cellStates = {};
         const rows = table.querySelectorAll('tr');
@@ -618,34 +619,33 @@
                     fontSize: cell.style.fontSize || '',
                 };
             });
-   
         });
         const rowHeights = {};
         document.querySelectorAll('.height-apply-btn').forEach(button => {
             const target = button.dataset.target;
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
-            // 최상단 공지 행 높이 저장 로직
-            if (target === 'top-notice') inputId = 'topNoticeRowHeightInput';
             if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
             const input = document.getElementById(inputId);
             if (input) rowHeights[target] = input.value;
         });
         return { cells: cellStates, rowHeights, timestamp: new Date() };
     };
-    
     const saveTableStateImmediate = async () => {
-        // FIX: 데이터베이스 저장 기능 비활성화
-        console.log('[Notice] Data saving logic is disabled to prevent authentication errors. To enable saving, please run on a web server with valid Firebase configuration.');
+        if (!currentUserId || !isAuthReady) return;
+        try {
+            await setDoc(getTableDocRef(currentUserId), serializeTableState(), { merge: true });
+            console.log('Saved');
+        } catch (e) {
+            console.error('Save error', e);
+        }
     };
     const saveTableStateDebounced = debounce(saveTableStateImmediate, autoSaveDebounceMs);
-    
     // V2: 행 높이 적용 로직 개선 (height, line-height 분리)
     const applyRowHeight = (target, value) => {
         const heightPx = `${value}px`;
         const lineHeight = `${parseInt(value) - 10}px`; // padding/border 고려
         
         const selectors = {
-            'top-notice': '.top-notice-row',
             'top-data': '.top-data-row, .top-data-header',
             'middle-notice': '.middle-notice-row',
             'bottom-data': '.bottom-data-row, .bottom-data-header'
@@ -656,49 +656,77 @@
                 // TD 자체의 height를 100%로 설정하여 TR 높이를 따르게 하고, line-height를 조정하여 텍스트를 중앙에 가깝게 배치
                 cell.style.height = '100%';
                 cell.style.lineHeight = lineHeight;
-   
             });
         });
         if (autoSave) saveTableStateDebounced();
     };
-    
     const applyLoadedState = (data) => {
-        // FIX: 로드 데이터가 없더라도 기본 높이만 적용
-        if (data && data.cells) {
-            // ... (cell data load logic - now skipped, use initial HTML)
+        if (!data) return;
+        if (data.cells) {
+            const rows = table.querySelectorAll('tr');
+            rows.forEach((row, rIndex) => {
+                row.querySelectorAll('td').forEach((cell, cIndex) => {
+                    const cellId = `r${rIndex}c${cIndex}`;
+                    const state = data.cells[cellId];
+                    if (state) {
+                        if (cell.innerHTML !== state.text) cell.innerHTML = state.text;
+                        cell.style.color = state.color || '';
+                        cell.style.backgroundColor = state.bg || '';
+                        cell.style.fontSize = state.fontSize || '';
+                    }
+                });
+            });
         }
-        if (data && data.rowHeights) {
+        if (data.rowHeights) {
             for (const [key, value] of Object.entries(data.rowHeights)) {
                 let inputId = `${key.replace('-data', 'RowHeightInput')}`;
-                if (key === 'top-notice') inputId = 'topNoticeRowHeightInput'; 
                 if (key === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
                 const input = document.getElementById(inputId);
                 if (input) input.value = value;
                 applyRowHeight(key, value);
-            // 로드 시 높이 적용
+                // 로드 시 높이 적용
             }
-        } else {
-            // 초기 HTML이 로드될 때 기본 높이 적용
-            applyRowHeight('top-notice', document.getElementById('topNoticeRowHeightInput').value); 
-            applyRowHeight('top-data', document.getElementById('topRowHeightInput').value);
-            applyRowHeight('middle-notice', document.getElementById('middleNoticeRowHeightInput').value);
-            applyRowHeight('bottom-data', document.getElementById('bottomRowHeightInput').value);
         }
-        
-        // 이 부분은 setAdminMode(adminMode) 호출로 대체되어야 합니다.
-        // if (!adminMode) {
-        //     table.querySelectorAll('td').forEach(td => td.contentEditable = false);
-        // }
-        
+        // Admin 모드가 꺼져있다면 읽기 전용으로 설정
+        if (!adminMode) {
+            table.querySelectorAll('td').forEach(td => td.contentEditable = false);
+        }
         clearSelection();
     };
+    const loadTableState = (userId) => {
+        const docRef = getTableDocRef(userId);
+        onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                applyLoadedState(docSnap.data());
+            } else if (!initialLoadDone) {
+                // 초기 로드 시 데이터가 없으면 현재 상태를 저장
+                saveTableStateImmediate();
+            }
+            initialLoadDone = true;
+        }, (error) => {
+            console.error('Snapshot listener error:', error);
+            // 사용자에게 오류 메시지 표시
+            if (error.code === 'permission-denied') {
+                alert('데이터 로드 권한이 거부되었습니다. 관리자에게 문의하세요.');
+            } else {
+                alert('데이터 로드 중 오류가 발생했습니다: ' + error.message);
+            }
+        });
+    };
 
-
-    document.addEventListener('DOMContentLoaded', () => {
-        applyLoadedState(null);
-        initialLoadDone = true;
-        // FIX 1: 초기 로드 시 관리자 모드 ON 상태를 확실하게 반영하여 텍스트 편집을 활성화합니다.
-        setAdminMode(adminMode); 
+    // auth handler
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUserId = user.uid;
+            isAuthReady = true;
+            loadTableState(currentUserId);
+        } else {
+            // 익명 로그인
+            signInAnonymously(auth).catch((error) => {
+                console.error('Anonymous sign-in error:', error);
+                alert('서비스 접속에 실패했습니다. 네트워크 상태를 확인해주세요.');
+            });
+        }
     });
 
     const clearSelection = () => {
@@ -708,44 +736,35 @@
         startCell = null;
         endCell = null;
     };
-    
-    const getCellCoordinates = (cell) => ({
-        rowIndex: cell.closest('tr').rowIndex,
-        cellIndex: cell.cellIndex
-    });
-    
+
+    const getCellPos = (cell) => {
+        if (!cell) return { rowIndex: -1, cellIndex: -1 };
+        return { rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex };
+    };
+
     const updateSelection = (startPos, endPos) => {
         const r1 = Math.min(startPos.rowIndex, endPos.rowIndex);
         const r2 = Math.max(startPos.rowIndex, endPos.rowIndex);
         const c1 = Math.min(startPos.cellIndex, endPos.cellIndex);
         const c2 = Math.max(startPos.cellIndex, endPos.cellIndex);
-        
+
         clearSelection();
-        
+
         for (let r = r1; r <= r2; r++) {
             const row = table.rows[r];
             if (!row) continue;
-            
+
             for (let c = c1; c <= c2; c++) {
                 const cell = row.cells[c];
-                
                 // colspan/rowspan 처리 (간단화를 위해 현재는 스킵)
-                if (!cell) continue;
-                
-                const isSingleColRow = row.cells.length === 1 && cell.colSpan > 1;
+                if (!cell || cell.colSpan > 1 || cell.rowSpan > 1) continue;
 
-                if (cell.colSpan > 1 && !isSingleColRow) {
-                    // 단일 셀이 아닌데 colspan이 있는 경우 건너뜀
-                    continue; 
-                }
-                if (cell.rowSpan > 1) continue; 
-                
                 cell.classList.add('selected');
                 selectedCells.add(cell);
             }
         }
     };
-    
+
     const updateSelectionBoxVisual = (start, end) => {
         const wrapRect = document.querySelector('.wrap').getBoundingClientRect();
         const sRect = start.getBoundingClientRect();
@@ -753,7 +772,7 @@
         const tableRect = table.getBoundingClientRect();
         const wrapScrollLeft = document.querySelector('.wrap').scrollLeft;
         const wrapScrollTop = document.querySelector('.wrap').scrollTop;
-        
+
         // 테이블 좌표를 기준으로 계산
         const left = Math.min(sRect.left, eRect.left) - tableRect.left + wrapScrollLeft + 200;
         // 200px (Left Menu width) 보정
@@ -761,7 +780,7 @@
         // wrap top padding 보정
         const right = Math.max(sRect.right, eRect.right) - tableRect.left + wrapScrollLeft + 200;
         const bottom = Math.max(sRect.bottom, eRect.bottom) - tableRect.top + wrapScrollTop + wrapRect.top - 20;
-        
+
         selectionBox.style.left = `${left}px`;
         selectionBox.style.top = `${top}px`;
         selectionBox.style.width = `${right - left}px`;
@@ -769,68 +788,62 @@
         selectionBox.style.display = 'block';
     };
 
-    /* -------------------------- Selection Event Handlers (FIXED) -------------------------- */
+    const getCellCoordinates = (cell) => ({ rowIndex: cell.closest('tr').rowIndex, cellIndex: cell.cellIndex });
 
+    // Mouse handlers
     const handleMouseDown = (e) => {
-        if (!e.target.closest('td')) return;
+        // 설정 패널이나 메뉴를 클릭하면 무시
+        if (e.target.closest('.setting-panel') || e.target.closest('.left-menu')) return;
+        const cell = e.target.closest('td');
+        if (!cell) {
+            clearSelection();
+            return; // 테이블 밖이나 빈 공간 클릭 시 선택 해제
+        }
+        // 텍스트를 드래그하는 것을 막기 위해 preventDefault
+        e.preventDefault();
 
-        // 선택 영역 초기화
-        clearSelection();
+        startCell = cell;
+        endCell = cell;
 
-        startCell = e.target.closest('td');
-        endCell = startCell; // 단일 클릭 시
-
-        // 드래그를 시작할 때 이벤트 리스너 추가
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
-        
-        e.preventDefault(); 
     };
 
     const handleMouseMove = (e) => {
         if (!startCell) return;
-
         const currentCell = e.target.closest('td');
-        
-        // 마우스가 TD 영역 밖에 있다면 endCell을 업데이트하지 않고 리턴
-        if (!currentCell) return;
 
-        // FIX 2: 현재 셀이 이전 endCell과 다를 경우에만 처리하여 드래그 선택 안정화
-        if (currentCell !== endCell) { 
+        if (currentCell && currentCell !== endCell) {
             endCell = currentCell;
-        
             const startPos = getCellCoordinates(startCell);
             const endPos = getCellCoordinates(endCell);
-            
-            updateSelection(startPos, endPos); // 선택된 셀에 클래스 적용
-            updateSelectionBoxVisual(startCell, endCell); // 시각적 선택 박스 업데이트
+            updateSelection(startPos, endPos);
+            updateSelectionBoxVisual(startCell, endCell);
             isDragging = true;
         }
-        // END FIX 2
     };
 
     const handleMouseUp = () => {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
-        
-        // 드래그 여부와 관계없이 최종 선택 상태를 확정하고 상태를 초기화
-        if (startCell && endCell) {
-             // mousemove가 한 번도 실행되지 않은 단일 클릭이라도 정확히 처리됨
-            updateSelection(getCellCoordinates(startCell), getCellCoordinates(endCell));
+        if (startCell && endCell && startCell !== endCell) {
+            // 드래그 완료 후 selectionBox 숨김 (선택된 셀에만 스타일 유지)
+            selectionBox.style.display = 'none';
+        } else if (startCell && startCell === endCell) {
+            // 단일 클릭
+            updateSelection(getCellCoordinates(startCell), getCellCoordinates(startCell));
+            selectionBox.style.display = 'none';
         }
-
-        selectionBox.style.display = 'none';
-        
-        // 상태 초기화
         isDragging = false;
-        startCell = null;
-        endCell = null;
     };
 
     // Table event listeners (Delegation)
     table.addEventListener('mousedown', handleMouseDown);
 
-    /* -------------------------- Control handlers -------------------------- */
+
+    /* --------------------------
+        Control handlers
+    -------------------------- */
 
     // Color Palette setup
     const initializeColorPalette = () => {
@@ -847,10 +860,6 @@
 
     const applyColorToSelection = (color) => {
         const target = document.querySelector('input[name="colorTarget"]:checked').value;
-        if (!adminMode) {
-             alert('색상 변경은 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
-        }
         selectedCells.forEach(cell => {
             if (target === 'text') cell.style.color = color;
             else cell.style.backgroundColor = color;
@@ -860,10 +869,6 @@
 
     // Font size
     applyFontSizeBtn?.addEventListener('click', () => {
-        if (!adminMode) {
-             alert('글꼴 크기 변경은 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
-        }
         const size = fontSizeInput.value + 'px';
         selectedCells.forEach(cell => cell.style.fontSize = size);
         if (autoSave) saveTableStateDebounced();
@@ -872,14 +877,8 @@
     // Row height apply event
     document.querySelectorAll('.height-apply-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            if (!adminMode) {
-                 alert('행 높이 변경은 관리자 모드(Admin Mode)에서만 가능합니다.');
-                 return;
-            }
             const target = btn.dataset.target;
             let inputId = `${target.replace('-data', 'RowHeightInput')}`;
-            // 최상단 공지 행 input ID 처리
-            if (target === 'top-notice') inputId = 'topNoticeRowHeightInput';
             if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
             const input = document.getElementById(inputId);
             if (input) applyRowHeight(target, input.value);
@@ -911,37 +910,30 @@
             if (coordA.rowIndex !== coordB.rowIndex) return coordA.rowIndex - coordB.rowIndex;
             return coordA.cellIndex - coordB.cellIndex;
         });
-
-        const startCoords = getCellCoordinates(sortedCells[0]);
         
+        // 붙여넣기 시 상대적인 위치 계산을 위해 가장 왼쪽/위쪽 셀의 좌표를 저장
+        const startCoords = getCellCoordinates(sortedCells[0]);
+
         sortedCells.forEach(cell => {
             const coords = getCellCoordinates(cell);
             data.push({
-                r: coords.rowIndex - startCoords.rowIndex, // 상대적 행 위치
-                c: coords.cellIndex - startCoords.cellIndex, // 상대적 열 위치
+                // 상대 좌표 (r: 0, c: 0 부터 
+                r: coords.rowIndex - startCoords.rowIndex,
+                c: coords.cellIndex - startCoords.cellIndex,
                 html: cell.innerHTML,
                 color: cell.style.color || '',
                 bg: cell.style.backgroundColor || '',
-                fontSize: cell.style.fontSize || '',
+                fontSize: cell.style.fontSize || ''
             });
         });
 
         try {
-            // FIX: clipboard API 사용 시 에러 방지용으로 document.execCommand('copy') 대신 alert로 알림
-            const clipData = JSON.stringify({
+            await navigator.clipboard.writeText(JSON.stringify({
                 type: 'table_clip',
                 data: data,
                 baseRow: startCoords.rowIndex,
                 baseCol: startCoords.cellIndex
-            });
-            // 임시 textarea를 사용해 복사
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = clipData;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-
+            }));
             alert(`총 ${selectedCells.size}개 셀 복사 완료`);
         } catch (e) {
             console.error(e);
@@ -950,10 +942,6 @@
     });
 
     pasteBtn?.addEventListener('click', async () => {
-        if (!adminMode) {
-             alert('붙여넣기(Paste)는 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
-        }
         try {
             const text = await navigator.clipboard.readText();
             const clipboard = JSON.parse(text);
@@ -975,13 +963,13 @@
             clipboard.data.forEach(item => {
                 const row = table.rows[targetR + item.r];
                 if (!row) return;
+
                 const cell = row.cells[targetC + item.c];
                 if (!cell) return;
 
                 cell.innerHTML = item.html;
                 cell.style.color = item.color || '';
-                cell.style.backgroundColor 
-                = item.bg || '';
+                cell.style.backgroundColor = item.bg || '';
                 cell.style.fontSize = item.fontSize || '';
             });
 
@@ -998,13 +986,8 @@
     const isDataRow = (r) => r.classList.contains('bottom-data-row') || r.classList.contains('top-data-row');
 
     addRowBtn?.addEventListener('click', () => {
-        if (!adminMode) {
-             alert('행 추가는 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
-        }
         const lastRowIndex = table.rows.length - 1;
         const lastRow = table.rows[lastRowIndex];
-
         // 마지막 행이 데이터 행이 아니면, 마지막 데이터 행을 찾음
         let insertBeforeIndex = table.rows.length;
         for (let i = lastRowIndex; i >= 0; i--) {
@@ -1014,18 +997,17 @@
             }
         }
         // 기본적으로는 테이블 맨 끝에 추가 (위에 데이터 행이 없을 경우)
-
         // 컬럼 개수 결정 (Header Row의 컬럼 개수를 따름)
         const cols = table.querySelector('.top-data-header')?.cells.length || table.rows[0]?.cells.length || 5;
 
         const tr = table.insertRow(insertBeforeIndex);
         tr.className = 'bottom-data-row'; // 기본적으로 하단 데이터 행으로 추가
-
+        
         // 초기 높이 적용
         const heightValue = document.getElementById('bottomRowHeightInput').value;
         if(heightValue) applyRowHeight('bottom-data', 
-            heightValue); 
-            
+            heightValue);
+        
         for (let i = 0; i < cols; i++) {
             const td = tr.insertCell();
             td.contentEditable = adminMode; // 현재 관리자 모드 상태 반영
@@ -1036,62 +1018,20 @@
     });
 
     addColBtn?.addEventListener('click', () => {
-        if (!adminMode) {
-             alert('열 추가는 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
+        for (const tr of table.rows) {
+            const td = tr.insertCell();
+            td.contentEditable = adminMode; // 현재 관리자 모드 상태 반영
+            td.innerHTML = '';
         }
-        if (!confirm('테이블의 모든 행에 새로운 컬럼을 추가하시겠습니까? (colspan/rowspan이 있는 행은 오류가 발생할 수 있습니다.)')) return;
-
-        const rows = table.rows;
-        if (rows.length === 0) return;
-
-        // 마지막 컬럼 인덱스 (가장 긴 행을 기준으로)
-        const lastColIndex = rows[0]?.cells.length || 0;
-
-        for (let r = 0; r < rows.length; r++) {
-            const row = rows[r];
-            
-            // 공지 행 (colspan이 전체에 적용됨)
-            if (row.classList.contains('top-notice-row') || row.classList.contains('middle-notice-row')) {
-                const td = row.cells[0];
-                if (td) td.colSpan = (td.colSpan || row.cells.length) + 1; // colspan 값 증가
-                continue;
-            }
-            
-            const td = row.insertCell(lastColIndex);
-            
-            // Header Row
-            if (row.classList.contains('top-data-header') || row.classList.contains('bottom-data-header')) {
-                td.contentEditable = false;
-                td.innerHTML = `New Col ${lastColIndex + 1}`;
-                td.style.minWidth = '80px';
-            } 
-            // Data Row
-            else {
-                td.contentEditable = adminMode;
-                td.innerHTML = '';
-            }
-        }
-        
-        // 새로운 컬럼에 기본 너비 적용 (다른 컬럼과 동일하게 100px)
-        table.querySelectorAll(`tr > td:nth-child(${lastColIndex + 1}), tr > th:nth-child(${lastColIndex + 1})`).forEach(cell => {
-            cell.style.width = `100px`;
-        });
-
         if (autoSave) saveTableStateDebounced();
-        alert('새로운 열이 추가되었습니다.');
     });
 
-
-    // Delete row(s) - based on selection; if none selected, delete last data row
+    // Delete row(s) - based on selection; if none selected, delete last data row (not headers)
     deleteRowBtn?.addEventListener('click', () => {
-        if (!adminMode) {
-             alert('행 삭제는 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
-        }
+        // gather unique row indexes from selected cells
         const rowIndexes = new Set();
         selectedCells.forEach(cell => rowIndexes.add(cell.closest('tr').rowIndex));
-
+        
         const rows = Array.from(table.rows);
 
         if (rowIndexes.size === 0) {
@@ -1115,11 +1055,14 @@
         let deletedCount = 0;
         // sort descending and remove rows
         const sortedRows = Array.from(rowIndexes).sort((a, b) => b - a);
-        
         for (const rIdx of sortedRows) {
             const r = table.rows[rIdx];
             // 중요: 헤더나 공지 행은 삭제 방지
-            if (r.classList.contains('top-data-header') || r.classList.contains('bottom-data-header') || r.classList.contains('top-notice-row') || r.classList.contains('middle-notice-row') ) {
+            if (r.classList.contains('top-data-header') || 
+                r.classList.contains('bottom-data-header') ||
+                r.classList.contains('top-notice-row') ||
+                r.classList.contains('middle-notice-row')
+            ) {
                 continue;
             }
             table.deleteRow(rIdx);
@@ -1133,10 +1076,6 @@
 
     // Delete column(s) - based on selection; if none selected, delete last column
     deleteColBtn?.addEventListener('click', () => {
-        if (!adminMode) {
-             alert('열 삭제는 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
-        }
         const colIndexes = new Set();
         selectedCells.forEach(cell => colIndexes.add(cell.cellIndex));
 
@@ -1153,15 +1092,8 @@
             if (confirm(`테이블의 모든 행에서 가장 오른쪽 컬럼(인덱스: ${lastIndex})을 삭제하시겠습니까?`)) {
                 for (let r = 0; r < rows.length; r++) {
                     const row = rows[r];
-                    // 공지 행은 colspan 감소
-                    if (row.classList.contains('top-notice-row') || row.classList.contains('middle-notice-row')) {
-                        const td = row.cells[0];
-                        if (td && td.colSpan > 1) td.colSpan -= 1;
-                        continue;
-                    }
                     if (row.cells.length > lastIndex) row.deleteCell(lastIndex);
                 }
-
                 if (autoSave) saveTableStateDebounced();
             }
             return;
@@ -1171,18 +1103,9 @@
 
         // sort descending and remove cells per row
         const sortedCols = Array.from(colIndexes).sort((a,b)=>b-a);
-
         for (const cIdx of sortedCols) {
             for (let r = 0; r < rows.length; r++) {
                 const row = rows[r];
-
-                // 공지 행은 colspan 감소 (셀 자체는 삭제하지 않음)
-                if (row.classList.contains('top-notice-row') || row.classList.contains('middle-notice-row')) {
-                    const td = row.cells[0];
-                    if (td && td.colSpan > 1) td.colSpan -= 1;
-                    continue;
-                }
-                
                 // colspan 처리된 셀이 포함된 행은 스킵
                 if (row.cells.length > cIdx) row.deleteCell(cIdx);
             }
@@ -1190,47 +1113,33 @@
 
         clearSelection();
         if (autoSave) saveTableStateDebounced();
-        alert(`총 ${colIndexes.size}개의 컬럼이 삭제되었습니다.`);
     });
 
-    // Auto-Fit Column Width
+    // Auto-fit columns: measure content width and set table-layout to auto briefly
     autoFitBtn?.addEventListener('click', () => {
-        if (!adminMode) {
-             alert('열 너비 자동 맞춤은 관리자 모드(Admin Mode)에서만 가능합니다.');
-             return;
-        }
-        // 테이블 레이아웃을 auto로 변경하여 브라우저가 콘텐츠 너비를 계산하게 함
-        table.style.tableLayout = 'auto';
+        const colCount = table.rows[1]?.cells.length || 0;
+        const widths = new Array(colCount).fill(0);
+        const padding = 20; // 좌우 패딩 10px씩
 
-        // 텍스트 너비 측정을 위한 임시 컨테이너
-        const padding = 16; // 5px + 8px * 2 (패딩) + 2px (경계선) 대략 15px를 잡아줌
-        const colCount = table.querySelector('tr')?.cells.length || 5;
-        const widths = {};
-
-        // 모든 셀의 콘텐츠 너비 계산
-        for (let r = 0; r < table.rows.length; r++) {
-            const row = table.rows[r];
-            for (let c = 0; c < row.cells.length; c++) {
-                const cell = row.cells[c];
-                // colspan이 적용된 셀이거나 데이터 행이 아닌 경우 (공지/헤더)는 너비 계산에서 제외
-                if (cell.colSpan > 1 && !row.classList.contains('top-data-header') && !row.classList.contains('bottom-data-header')) continue;
-                
+        for (let r=0;r<table.rows.length;r++){
+            for (let c=0;c< (table.rows[r].cells.length); c++){
+                const cell = table.rows[r].cells[c];
+                // contentEditable이 true일 때만 textContent를 사용
                 const content = cell.textContent || cell.innerText || '';
-                if (content.trim() === '') continue;
-                // 내용이 없으면 무시
+                if (content.trim() === '') continue; // 내용이 없으면 무시
 
                 const span = document.createElement('span');
                 span.style.visibility='hidden';
-                span.style.whiteSpace='nowrap'; // 줄바꿈 방지
+                span.style.whiteSpace='nowrap';
                 // 계산된 스타일을 가져와서 정확한 너비 측정
                 span.style.font = window.getComputedStyle(cell).font;
-                span.innerHTML = content.replace(/\s+/g,' '); // 줄바꿈을 공백으로 처리
-
-                document.body.appendChild(span);
+                span.innerHTML = content.replace(/\s+/g,' '); // 줄바꿈을 공백으로 
+                처리
                 
+                document.body.appendChild(span);
+
                 // 너비 + 패딩 계산
                 widths[c] = Math.max(widths[c]||0, span.offsetWidth + padding);
-                
                 document.body.removeChild(span);
             }
         }
@@ -1238,17 +1147,17 @@
         // 테이블 레이아웃을 다시 fixed로 돌리고 너비 적용
         table.style.tableLayout = 'fixed';
         let totalWidth = 0;
-
+        
         for (let c=0;c<colCount;c++){
-            const colWidth = Math.min(Math.max(widths[c] || 80, 80), 500); // min 80px, max 500px 제한 (기본값 80px)
+            const colWidth = Math.min(Math.max(widths[c], 80), 500); // min 80px, max 500px 제한
             table.querySelectorAll(`tr > td:nth-child(${c+1}), tr > th:nth-child(${c+1})`).forEach(cell => {
                 cell.style.width = `${colWidth}px`;
             });
             totalWidth += colWidth;
         }
-
+        
         // 테이블 전체 너비 설정 (옵션)
-        // table.style.width = `${totalWidth}px`; 
+        // table.style.width = `${totalWidth}px`;
 
         if (autoSave) saveTableStateDebounced();
         alert('열 너비 자동 맞춤이 완료되었습니다.');
@@ -1259,51 +1168,75 @@
         adminMode = mode;
         const adminElements = [saveNowBtn, copyBtn, pasteBtn, addRowBtn, addColBtn, deleteRowBtn, deleteColBtn, autoFitBtn, applyFontSizeBtn, ...document.querySelectorAll('.height-apply-btn')];
         
-        toggleAdminBtn.textContent = `관리자 모드: ${mode ? 'ON' : 'OFF'}`;
-        // FIX: 관리자 모드 ON/OFF에 따라 버튼 색상을 명확하게 변경
-        toggleAdminBtn.style.background = mode ? '#4CAF50' : '#a33'; 
+        toggleAdminBtn.textContent = `관리자 모드: ${mode ?
+            'ON' : 'OFF'}`;
+        toggleAdminBtn.style.background = mode ? '#a33' : '#444';
         
-        table.querySelectorAll('td').forEach(td => {
-            // 헤더/공지 셀은 항상 수정 불가
-            const isHeaderOrNotice = td.closest('tr')?.classList.contains('top-data-header') || 
-                                     td.closest('tr')?.classList.contains('bottom-data-header') ||
-                                     td.closest('tr')?.classList.contains('top-notice-row') ||
-                                     td.closest('tr')?.classList.contains('middle-notice-row');
-            
-            if (isHeaderOrNotice) {
-                 td.contentEditable = false;
-            } else {
-                 td.contentEditable = mode;
-            }
-        });
-
+        table.querySelectorAll('td').forEach(td => td.contentEditable = mode);
+        
         adminElements.forEach(btn => { if (btn) btn.disabled = !mode; });
-        
         // 텍스트/배경색 적용 및 폰트 크기 변경도 관리자 모드에 종속
         document.querySelectorAll('.color-swatch').forEach(swatch => swatch.style.cursor = mode ? 'pointer' : 'not-allowed');
         document.getElementById('fontSizeInput').disabled = !mode;
-        
     }
+    toggleAdminBtn?.addEventListener('click', () => {
+        setAdminMode(!adminMode);
+    });
 
-    toggleAdminBtn?.addEventListener('click', () => setAdminMode(!adminMode));
+    // Image download (html2canvas)
+    const captureWithLeftMenu = async () => {
+        // hide setting panel temporarily
+        const settingPanel = document.getElementById('settingPanel');
+        const prevDisplay = settingPanel.style.display;
+        settingPanel.style.display = 'none';
 
-    // Download Image
-    async function captureTableArea() {
+        // ensure selection box hidden for cleaner capture
+        const prevSelectionDisplay = selectionBox.style.display;
+        selectionBox.style.display = 'none';
+        
+        try {
+            // capture whole body to include left-menu (left-menu is fixed)
+            const canvas = await html2canvas(document.body, { 
+                useCORS:true, 
+                allowTaint:false, 
+                scale:2, 
+                backgroundColor: null 
+            });
+            const data = canvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = data;
+            a.download = `noblesse_full_${Date.now()}.png`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            alert('이미지 다운로드가 완료되었습니다!');
+
+        } catch(e) {
+            console.error(e);
+            alert('이미지 다운로드에 실패했습니다. (클라이언트 측 오류)');
+        } finally {
+            // restore hidden elements
+            settingPanel.style.display = prevDisplay;
+            selectionBox.style.display = prevSelectionDisplay;
+        }
+    }
+    downloadBtn?.addEventListener('click', captureWithLeftMenu);
+
+
+    const captureTableArea = async () => {
         const tableArea = document.getElementById('capture-area');
-        if (!tableArea) return;
-
-        // 선택 영역 시각화 숨김
+        
+        // ensure selection box hidden for cleaner capture
         const prevSelectionDisplay = selectionBox.style.display;
         selectionBox.style.display = 'none';
 
         try {
-            const canvas = await html2canvas(tableArea, {
-                useCORS:true,
-                allowTaint:false,
+             const canvas = await html2canvas(tableArea, { 
+                useCORS:true, 
+                allowTaint:false, 
                 scale:2, // 고해상도 캡처
-                backgroundColor: null // 투명 배경
+                backgroundColor: null 
             });
-
             const data = canvas.toDataURL('image/png');
             const a = document.createElement('a');
             a.href = data;
@@ -1321,7 +1254,12 @@
     }
     downloadFullBtn?.addEventListener('click', captureTableArea);
 
-    /* -------------------------- Global selection clear click handler -------------------------- */
+
+    /* --------------------------
+        New: Global selection clear click handler
+        - 테이블/설정 패널/좌측 메뉴 외 클릭하면 선택 상태를 해제
+        - 설정 패널, 좌측 메뉴 클릭 시 무시 (컨트롤 요소)
+    -------------------------- */
     document.addEventListener('click', (e) => {
         const target = e.target;
         // 드래그 중이 아니고, 테이블/설정 패널/메뉴를 클릭하지 않았다면 선택 해제
@@ -1334,7 +1272,9 @@
         }
     });
 
-    /* -------------------------- Left menu & Top menu click behavior -------------------------- */
+    /* --------------------------
+        New: Left menu & Top menu click behavior
+    -------------------------- */
     if (leftMenu) {
         leftMenu.addEventListener('click', (e) => {
             const li = e.target.closest('.left-item');
@@ -1352,10 +1292,11 @@
             it.classList.add('active');
             // 메뉴 클릭 시 상단 메뉴 표시도 업데이트
             const newMenuText = it.textContent.trim().split('\n')[0].trim();
-            const indicatorText = menuIndicator.textContent.split(': ')[0] + `: ${newMenuText}`;
-            if (menuIndicator) menuIndicator.textContent = indicatorText;
+            const indicatorText = menuIndicator.textContent.split(': ')[0];
+            if (menuIndicator) menuIndicator.textContent = `${indicatorText}: ${newMenuText}`;
         });
     }
+
 </script>
 </body>
 </html>
