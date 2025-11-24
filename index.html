@@ -19,7 +19,6 @@
             display: flex;
             min-height: 100vh;
             user-select: none;
-            /* 중요: 기본적으로 모든 요소의 드래그 선택 방지 (커스텀 선택을 위해) */
         }
         
         /* Logo Code for Upper Right Diagonal Placement */
@@ -33,10 +32,11 @@
 
         .wrap {
             flex-grow: 1;
-            padding: 20px 20px 20px 200px;
-            position: relative;
+            /* left-menu (180px) + margin (20px) = 200px */
+            padding: 20px 20px 20px 200px; 
+            position: relative; /* selectionBox 기준점 */
             max-width: calc(100vw - 320px);
-            overflow: auto;
+            overflow: auto; /* 스크롤 기능 */
         }
 
         /* Setting Panel Styling */
@@ -51,7 +51,7 @@
             box-shadow: -3px 0 10px rgba(0, 0, 0, 0.5);
             overflow-y: auto;
             z-index: 100;
-            user-select: auto; /* 패널 내부는 선택 가능하게 */
+            user-select: auto;
         }
 
         .setting-panel h3 {
@@ -187,7 +187,7 @@
             border-collapse: collapse;
             font-size: 14px;
             table-layout: fixed;
-            user-select: auto; /* 테이블 내부는 텍스트 편집을 위해 선택 가능 */
+            user-select: auto;
         }
 
         .data-table td {
@@ -239,20 +239,20 @@
             color: #ddd;
         }
 
-        /* 🚀 [FIX 1] Editable Content Styling - Ensure text selection works */
+        /* Editable Content Styling - Ensure text selection works */
         .data-table td[contenteditable="true"] {
-            user-select: text !important; /* 브라우저 텍스트 선택 강제 허용 */
+            user-select: text !important; 
             cursor: text;
             outline: none;
         }
         .data-table td[contenteditable="false"] {
             cursor: not-allowed;
-            user-select: none; /* 편집 불가능 셀은 선택 금지 */
+            user-select: none;
         }
 
         /* Selection Box (for drag visual) */
         #selectionBox {
-            position: absolute;
+            position: absolute; /* .wrap 기준 위치 */
             border: 2px dashed #FFD700;
             background-color: rgba(255, 215, 0, 0.2);
             pointer-events: none;
@@ -267,11 +267,6 @@
             position: relative;
             z-index: 5;
         }
-
-        /* Resizer Styling (Placeholder) */
-        .col-resizer { position: absolute; right: -4px; top: 0; width: 8px; height: 100%; cursor: col-resize; z-index: 20; }
-        .row-resizer { position: absolute; bottom: -4px; right: 0; width: 100%; height: 8px; cursor: row-resize; z-index: 20; }
-        .resizer-display { position: fixed; padding: 5px 10px; background: rgba(0, 0, 0, 0.8); color: #ffdd66; border-radius: 4px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 101; font-size: 0.8em; white-space: nowrap; }
 
         /* small responsive fix */
         @media (max-width: 900px) {
@@ -290,8 +285,8 @@
 <div class="setting-panel" id="settingPanel">
     <div style="color: #ffdd66; margin-top: 5px; margin-bottom: 10px; font-weight: bold;">
         ※ 사용법:
-        <br>1. **글자 편집**: 셀 클릭 후 바로 수정.
-        <br>2. **스타일 적용**: <span style="color:#00ffff;">`Ctrl` 또는 `Cmd` 키</span>를 누른 채 드래그하여 셀 선택 후 적용.
+        <br>1. **글자 편집**: 셀 **일반 클릭** 후 바로 수정.
+        <br>2. **스타일 적용**: <span style="color:#00ffff;">`Ctrl` 또는 `Cmd` 키</span>를 누른 채 **드래그**하여 셀 선택 후 적용.
     </div>
 
     <div class="color-target-control">
@@ -525,7 +520,6 @@
     </table>
 </div>
 
-<div class="resizer-display" id="resizerDisplay"></div>
 
 <script type="module">
     
@@ -538,6 +532,7 @@
     const leftMenu = document.getElementById('leftMenu');
     const menuIndicator = document.getElementById('menuIndicator');
     const topSubMenu = document.getElementById('topSubMenu');
+    const wrap = document.querySelector('.wrap'); // wrap element 추가
     
     // Tool buttons
     const autoSaveToggleBtn = document.getElementById('autoSaveToggleBtn');
@@ -571,7 +566,6 @@
     let autoSaveDebounceMs = 800;
     let saveTimer = null;
     let adminMode = true; // 기본값은 활성화(편집 가능)
-    let initialLoadDone = false; 
 
     // helpers
     const debounce = (fn, ms) => {
@@ -581,32 +575,6 @@
         };
     };
 
-    const serializeTableState = () => {
-        // 이 함수는 복사/붙여넣기 및 다운로드에 사용되므로 유지
-        const cellStates = {};
-        const rows = table.querySelectorAll('tr');
-        rows.forEach((row, rIndex) => {
-            row.querySelectorAll('td').forEach((cell, cIndex) => {
-                const cellId = `r${rIndex}c${cIndex}`;
-                cellStates[cellId] = {
-                    text: cell.innerHTML,
-                    color: cell.style.color || '',
-                    bg: cell.style.backgroundColor || '',
-                    fontSize: cell.style.fontSize || '',
-                };
-            });
-        });
-        const rowHeights = {};
-        document.querySelectorAll('.height-apply-btn').forEach(button => {
-            const target = button.dataset.target;
-            let inputId = `${target.replace('-data', 'RowHeightInput')}`;
-            if (target === 'top-notice') inputId = 'topNoticeRowHeightInput';
-            if (target === 'middle-notice') inputId = 'middleNoticeRowHeightInput';
-            const input = document.getElementById(inputId);
-            if (input) rowHeights[target] = input.value;
-        });
-        return { cells: cellStates, rowHeights, timestamp: new Date() };
-    };
     const saveTableStateImmediate = async () => {
         // FIX: 데이터베이스 저장 기능 비활성화 (로컬 사용)
         console.log('[Notice] Data saving logic is disabled (local execution).');
@@ -655,16 +623,13 @@
         // 모든 셀에 contentEditable 상태 적용
         table.querySelectorAll('tr').forEach(row => {
             const isHeader = row.classList.contains('top-data-header') || row.classList.contains('bottom-data-header');
-            const isNoticeRow = row.classList.contains('top-notice-row') || row.classList.contains('middle-notice-row');
             
             row.querySelectorAll('td').forEach(td => {
+                // 헤더 셀은 항상 편집 불가능
                 if (isHeader) {
                     td.contentEditable = false;
-                } else if (isNoticeRow) {
-                    // 공지 행은 adminMode에 관계없이 편집 가능하도록 유지 (사용자 요구사항을 따름)
-                    td.contentEditable = adminMode ? true : false; 
                 } else {
-                    // 데이터 행은 adminMode에 따라 활성화/비활성화
+                    // 데이터/공지 행은 adminMode에 따라 활성화/비활성화
                     td.contentEditable = adminMode;
                 }
             });
@@ -673,9 +638,7 @@
         clearSelection();
     };
 
-    const applyLoadedState = (state) => {
-        // ... (data loading logic removed for simplicity in local execution)
-
+    const applyLoadedState = () => {
         // 초기 HTML이 로드될 때 기본 높이 적용
         applyRowHeight('top-notice', document.getElementById('topNoticeRowHeightInput').value);
         applyRowHeight('top-data', document.getElementById('topRowHeightInput').value);
@@ -690,8 +653,7 @@
 
     document.addEventListener('DOMContentLoaded', () => { 
         initializeColorPalette(); 
-        applyLoadedState(null); 
-        initialLoadDone = true; 
+        applyLoadedState(); 
     });
     
     const clearSelection = () => {
@@ -716,8 +678,7 @@
             if (!row) continue;
             for (let c = c1; c <= c2; c++) {
                 const cell = row.cells[c];
-                // colspan/rowspan 처리 (간단화를 위해 현재는 스킵)
-                if (cell) { // 이제 contentEditable 여부와 상관없이 선택 가능
+                if (cell) {
                     cell.classList.add('selected');
                     selectedCells.add(cell);
                 }
@@ -725,33 +686,37 @@
         }
     };
 
+    // 🚀 [FIXED]: 드래그 박스 위치 계산 로직 수정 (스크롤 및 wrap 기준으로 보정)
     const updateSelectionBoxVisual = (startCell, endCell) => {
         if (!startCell || !endCell) return;
-        const tableRect = table.getBoundingClientRect();
-        const wrap = document.querySelector('.wrap');
-        const wrapRect = wrap.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect(); // .wrap의 뷰포트 위치
         const wrapScrollLeft = wrap.scrollLeft;
         const wrapScrollTop = wrap.scrollTop;
 
-        const sRect = startCell.getBoundingClientRect();
-        const eRect = endCell.getBoundingClientRect();
+        const sRect = startCell.getBoundingClientRect(); // startCell의 뷰포트 위치
+        const eRect = endCell.getBoundingClientRect();   // endCell의 뷰포트 위치
 
-        const left = Math.min(sRect.left, eRect.left) - tableRect.left + wrapScrollLeft + 200; // left menu padding
-        const top = Math.min(sRect.top, eRect.top) - tableRect.top + wrapScrollTop + wrapRect.top - 20; // wrap top padding 보정
+        // 뷰포트 기준으로 선택 영역의 최소/최대 좌표
+        const minLeft = Math.min(sRect.left, eRect.left);
+        const minTop = Math.min(sRect.top, eRect.top);
+        const maxRight = Math.max(sRect.right, eRect.right);
+        const maxBottom = Math.max(sRect.bottom, eRect.bottom);
 
-        const right = Math.max(sRect.right, eRect.right) - tableRect.left + wrapScrollLeft + 200;
-        const bottom = Math.max(sRect.bottom, eRect.bottom) - tableRect.top + wrapScrollTop + wrapRect.top - 20;
+        // .wrap 컨테이너 내부 절대 위치 (스크롤을 고려하여 계산)
+        // = (뷰포트 위치 - wrap의 뷰포트 시작 위치) + wrap의 스크롤 위치
+        const finalLeft = minLeft - wrapRect.left + wrapScrollLeft;
+        const finalTop = minTop - wrapRect.top + wrapScrollTop;
 
-        selectionBox.style.left = `${left}px`;
-        selectionBox.style.top = `${top}px`;
-        selectionBox.style.width = `${right - left}px`;
-        selectionBox.style.height = `${bottom - top}px`;
+        selectionBox.style.left = `${finalLeft}px`;
+        selectionBox.style.top = `${finalTop}px`;
+        selectionBox.style.width = `${maxRight - minLeft}px`;
+        selectionBox.style.height = `${maxBottom - minTop}px`;
         selectionBox.style.display = 'block';
     };
 
     let lastMoveEndCell = null;
 
-    // 🚀 [FIX 2] handleMouseDown 로직 수정: Ctrl/Cmd 키로 멀티 셀 선택 모드 토글
+    // 🚀 [FIXED] handleMouseDown 로직: Ctrl/Cmd 키로 멀티 셀 선택 모드 토글
     const handleMouseDown = (e) => {
         const clickedCell = e.target.closest('td');
         if (!clickedCell) return;
@@ -762,7 +727,7 @@
         if (isMultiSelect) {
             // 1. Ctrl/Cmd 키를 누른 경우: 커스텀 멀티 셀 선택 시작 (스타일 적용용)
             clearSelection();
-            startCell = clickedCell; // 헤더 셀도 선택 가능하도록
+            startCell = clickedCell;
             endCell = startCell;
 
             document.addEventListener('mousemove', handleMouseMove);
@@ -770,11 +735,12 @@
             e.preventDefault(); // 브라우저의 기본 동작 (텍스트 선택) 방지
         } else if (clickedCell.contentEditable === 'true') {
             // 2. 일반 클릭 + 편집 가능 셀: 브라우저의 기본 텍스트 편집 기능을 허용
-            //    -> clearSelection만 해주고 브라우저가 나머지를 처리하도록 둡니다.
+            //    -> clearSelection만 해주고 브라우저가 텍스트 편집을 처리하도록 둡니다.
             clearSelection();
-            // 단일 셀을 선택 상태로 남겨두는 로직 (선택 패널 사용을 위함)
+            // 단일 셀을 선택 상태로 남겨두어 설정 패널 사용 가능하도록
             clickedCell.classList.add('selected');
             selectedCells.add(clickedCell);
+            // 드래그가 아닐 경우, 텍스트 편집을 위해 기본 동작을 막지 않음.
         } else {
              // 3. 일반 클릭 + 편집 불가능 셀 (헤더 등): 단일 셀 선택만 적용
              clearSelection();
@@ -785,6 +751,13 @@
 
     const handleMouseMove = (e) => {
         if (!startCell) return;
+        
+        // Ctrl/Cmd 키가 해제되면 드래그 중지 (중요!)
+        if (!e.ctrlKey && !e.metaKey) {
+            handleMouseUp();
+            return;
+        }
+
         const currentCell = e.target.closest('td');
 
         if (!currentCell || currentCell === lastMoveEndCell) return; 
@@ -805,13 +778,12 @@
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         
-        if (startCell && endCell && startCell !== endCell) {
-            selectionBox.style.display = 'none';
-        } else if (startCell && startCell === endCell) {
-            selectionBox.style.display = 'none';
-            // 단일 클릭 처리 로직은 handleMouseDown에서 이미 처리됨.
+        selectionBox.style.display = 'none';
+        
+        if (isDragging) {
+            // 드래그가 완료되었을 때, isDragging 상태 초기화
+            isDragging = false;
         }
-        isDragging = false;
         lastMoveEndCell = null;
     };
 
@@ -834,7 +806,7 @@
 
     const handleColorClick = (e) => {
         if (selectedCells.size === 0) {
-            alert('색상을 적용할 셀을 Ctrl/Cmd 키를 누른 채 드래그하여 선택하세요.');
+            alert('색상을 적용할 셀을 **Ctrl/Cmd 키**를 누른 채 드래그하여 선택하세요.');
             return;
         }
         const color = e.target.dataset.color;
@@ -856,7 +828,7 @@
     // Font size apply event
     applyFontSizeBtn?.addEventListener('click', () => {
         if (selectedCells.size === 0) {
-            alert('글꼴 크기를 적용할 셀을 Ctrl/Cmd 키를 누른 채 드래그하여 선택하세요.');
+            alert('글꼴 크기를 적용할 셀을 **Ctrl/Cmd 키**를 누른 채 드래그하여 선택하세요.');
             return;
         }
         const size = fontSizeInput.value;
@@ -1172,6 +1144,7 @@
         if (autoSave) saveTableStateDebounced();
     });
 
+
     // Auto-Fit Column Width
     autoFitBtn?.addEventListener('click', () => {
         if (!adminMode) {
@@ -1226,6 +1199,7 @@
         
         table.style.width = `${totalWidth}px`; // 테이블 전체 너비 조정
     });
+
 
     // Download functions
     const tableArea = document.getElementById('capture-area');
@@ -1293,11 +1267,6 @@
             if (!it) return;
             topSubMenu.querySelectorAll('.menu').forEach(m=>m.classList.remove('active'));
             it.classList.add('active');
-            const newMenuText = it.textContent.trim().split('\n')[0].trim();
-            const indicatorText = menuIndicator.textContent.split(': ')[1];
-            if (menuIndicator && indicatorText !== newMenuText) {
-                // 상단 메뉴는 Indicator에 표시하지 않음
-            }
         });
     }
 
