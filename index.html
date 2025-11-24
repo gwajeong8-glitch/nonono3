@@ -37,6 +37,7 @@
             position: relative; /* selectionBox 기준점 */
             max-width: calc(100vw - 320px);
             overflow: auto; /* 스크롤 기능 */
+            user-select: auto; /* .wrap 내부에서는 텍스트 선택 가능 */
         }
 
         /* Setting Panel Styling */
@@ -686,7 +687,7 @@
         }
     };
 
-    // 🚀 [FIXED]: 드래그 박스 위치 계산 로직 수정 (스크롤 및 wrap 기준으로 보정)
+    // 드래그 박스 위치 계산 로직 (스크롤 및 wrap 기준으로 보정)
     const updateSelectionBoxVisual = (startCell, endCell) => {
         if (!startCell || !endCell) return;
         const wrapRect = wrap.getBoundingClientRect(); // .wrap의 뷰포트 위치
@@ -716,7 +717,7 @@
 
     let lastMoveEndCell = null;
 
-    // 🚀 [FIXED] handleMouseDown 로직: Ctrl/Cmd 키로 멀티 셀 선택 모드 토글
+    // 🚀 [NEW FIX]: 텍스트 편집 모드 간섭 방지 로직 추가
     const handleMouseDown = (e) => {
         const clickedCell = e.target.closest('td');
         if (!clickedCell) return;
@@ -725,6 +726,11 @@
         const isMultiSelect = e.ctrlKey || e.metaKey; 
 
         if (isMultiSelect) {
+            // **[NEW FIX]** 드래그 시작 시 모든 활성 요소를 강제로 포커스 해제하여 텍스트 편집 모드를 종료
+            if (document.activeElement && document.activeElement.closest('.data-table')) {
+                document.activeElement.blur(); 
+            }
+            
             // 1. Ctrl/Cmd 키를 누른 경우: 커스텀 멀티 셀 선택 시작 (스타일 적용용)
             clearSelection();
             startCell = clickedCell;
@@ -733,14 +739,13 @@
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             e.preventDefault(); // 브라우저의 기본 동작 (텍스트 선택) 방지
+            e.stopPropagation(); // **[NEW FIX]** 이벤트 전파 중단으로 간섭 최소화
         } else if (clickedCell.contentEditable === 'true') {
             // 2. 일반 클릭 + 편집 가능 셀: 브라우저의 기본 텍스트 편집 기능을 허용
-            //    -> clearSelection만 해주고 브라우저가 텍스트 편집을 처리하도록 둡니다.
             clearSelection();
             // 단일 셀을 선택 상태로 남겨두어 설정 패널 사용 가능하도록
             clickedCell.classList.add('selected');
             selectedCells.add(clickedCell);
-            // 드래그가 아닐 경우, 텍스트 편집을 위해 기본 동작을 막지 않음.
         } else {
              // 3. 일반 클릭 + 편집 불가능 셀 (헤더 등): 단일 셀 선택만 적용
              clearSelection();
