@@ -251,6 +251,12 @@
             user-select: none;
         }
 
+        /* 🚀 [FINAL FIX] 드래그 중 브라우저 텍스트 선택 방지 */
+        .disable-select * {
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+
         /* Selection Box (for drag visual) */
         #selectionBox {
             position: absolute; /* .wrap 기준 위치 */
@@ -402,12 +408,12 @@
             </tr>
             
             <tr class="top-data-header">
-                <td contenteditable="false">회원ID</td>
-                <td contenteditable="false">주문상태</td>
-                <td contenteditable="false">인증상태</td>
+                <td contenteditable="true">회원ID</td>
+                <td contenteditable="true">주문상태</td>
+                <td contenteditable="true">인증상태</td>
             
-                <td contenteditable="false">활성화 코드</td>
-                <td contenteditable="false">승인된 암호 코드</td>
+                <td contenteditable="true">활성화 코드</td>
+                <td contenteditable="true">승인된 암호 코드</td>
             </tr>
             
             <tr class="top-data-row">
@@ -467,12 +473,12 @@
             </tr>
 
             <tr class="bottom-data-header">
-                <td class="w-20" contenteditable="false">주문유형</td>
+                <td class="w-20" contenteditable="true">주문유형</td>
           
-                <td class="w-20" contenteditable="false">주문상세</td>
-                <td contenteditable="false">투자금액 (원)</td>
-                <td contenteditable="false">원금+수익금액</td>
-                <td contenteditable="false">보장비율</td>
+                <td class="w-20" contenteditable="true">주문상세</td>
+                <td contenteditable="true">투자금액 (원)</td>
+                <td contenteditable="true">원금+수익금액</td>
+                <td contenteditable="true">보장비율</td>
             </tr>
 
             <tr class="bottom-data-row">
@@ -613,7 +619,7 @@
         return row.classList.contains('top-data-row') || row.classList.contains('bottom-data-row');
     }
 
-    // --- 관리자 모드 토글 로직 ---
+    // --- 관리자 모드 토글 로직 (MODIFIED) ---
     const toggleAdminMode = (forceState = null) => {
         adminMode = forceState !== null ? forceState : !adminMode;
         if (toggleAdminBtn) {
@@ -621,18 +627,11 @@
             toggleAdminBtn.style.background = adminMode ? '#4CAF50' : '#a33'; 
         }
 
-        // 모든 셀에 contentEditable 상태 적용
+        // 🚀 FIX: 헤더 포함 모든 셀에 contentEditable 상태 적용 (사용자 요청 반영)
         table.querySelectorAll('tr').forEach(row => {
-            const isHeader = row.classList.contains('top-data-header') || row.classList.contains('bottom-data-header');
-            
             row.querySelectorAll('td').forEach(td => {
-                // 헤더 셀은 항상 편집 불가능
-                if (isHeader) {
-                    td.contentEditable = false;
-                } else {
-                    // 데이터/공지 행은 adminMode에 따라 활성화/비활성화
-                    td.contentEditable = adminMode;
-                }
+                // 관리자 모드 상태에 따라 모든 셀의 편집 가능 상태를 일괄 적용
+                td.contentEditable = adminMode;
             });
         });
 
@@ -717,7 +716,7 @@
 
     let lastMoveEndCell = null;
 
-    // 🚀 [NEW FIX]: 텍스트 편집 모드 간섭 방지 로직 추가
+    // 🚀 [FINAL FIX]: 텍스트 편집 모드 간섭 방지 및 드래그 차단 로직 추가
     const handleMouseDown = (e) => {
         const clickedCell = e.target.closest('td');
         if (!clickedCell) return;
@@ -736,10 +735,13 @@
             startCell = clickedCell;
             endCell = startCell;
 
+            // 🚀 [FINAL FIX] 드래그 중 브라우저 텍스트 선택을 완전히 막기 위해 CSS 클래스 적용
+            table.classList.add('disable-select'); 
+
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             e.preventDefault(); // 브라우저의 기본 동작 (텍스트 선택) 방지
-            e.stopPropagation(); // **[NEW FIX]** 이벤트 전파 중단으로 간섭 최소화
+            e.stopPropagation(); 
         } else if (clickedCell.contentEditable === 'true') {
             // 2. 일반 클릭 + 편집 가능 셀: 브라우저의 기본 텍스트 편집 기능을 허용
             clearSelection();
@@ -783,6 +785,9 @@
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
         
+        // 🚀 [FINAL FIX] 드래그 완료 후 CSS 클래스 제거
+        table.classList.remove('disable-select');
+
         selectionBox.style.display = 'none';
         
         if (isDragging) {
@@ -943,8 +948,8 @@
                 if (!row) return;
 
                 const cell = row.cells[cIndex];
-                // 편집 가능한 셀만 붙여넣기 허용
-                if (!cell || cell.contentEditable !== 'true') return;
+                // 편집 가능한 셀만 붙여넣기 허용 (Admin Mode에서 이미 모든 셀이 true이므로 별도 체크 불필요)
+                if (!cell) return;
                 
                 cell.innerHTML = clipCell.html;
                 cell.style.color = clipCell.color;
@@ -1025,13 +1030,14 @@
 
             const td = row.insertCell(lastColIndex);
 
-            // Header Row
+            // 모든 셀의 편집 가능 상태는 adminMode에 따라 결정됨
+            td.contentEditable = adminMode;
+            
+            // Header Row만 기본 텍스트 삽입
             if (row.classList.contains('top-data-header') || row.classList.contains('bottom-data-header')) {
-                td.contentEditable = false;
                 td.innerHTML = `New Col ${lastColIndex + 1}`;
             } else {
                 // Data Row
-                td.contentEditable = adminMode;
                 td.innerHTML = '';
             }
         }
